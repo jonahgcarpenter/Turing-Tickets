@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ticket dashboard for admins">
+    <meta name="author" content="Jonah Carpenter">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Base styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #001e65;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        nav {
+            display: flex;
+            gap: 10px;
+            margin-right: 30px;
+        }
+
+        nav a {
+            padding: 8px 15px;
+            background-color: #ff0000;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        nav a:hover {
+            background-color: #ff4d4d;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #333;
+        }
+
+        .controls-wrapper, .table-wrapper {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .controls-wrapper label, .controls-wrapper input {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .controls-wrapper select, .controls-wrapper input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .ticket-number {
+            width: 50px;
+            text-align: center;
+        }
+
+        .status {
+            padding: 5px;
+            border-radius: 5px;
+            color: white;
+            text-align: center;
+        }
+
+        .status-open { background-color: green; }
+        .status-in-progress { background-color: blue; }
+        .status-awaiting-response { background-color: orange; }
+        .status-closed { background-color: red; }
+
+        .expandable-content { display: none; }
+        .expanded { display: table-row; }
+
+        .expanded-details {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+        }
+
+        .note, .description-section, .notes-section {
+            margin-bottom: 10px;
+        }
+
+        .note-time {
+            font-size: 12px;
+            color: gray;
+            display: block;
+        }
+
+        .response-section, .status-section {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .response-section textarea, .status-section select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        .save-button {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .save-button:hover {
+            background-color: darkblue;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Admin Dashboard</h1>
+    <nav>
+        <a href="add_admin.php">Add Admin</a>
+        <a href="logout.php">Logout</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div class="controls-wrapper">
+        <label for="search-ticket">Search by Ticket Number:</label>
+        <input type="text" id="search-ticket" placeholder="Enter ticket number">
+        <button onclick="searchTicket()">Search</button>
+        
+        <label for="sort-tickets">Sort by:</label>
+        <select id="sort-tickets">
+            <option value="status" selected>Status</option>
+            <option value="updated-asc">Oldest First</option>
+            <option value="updated-desc">Newest First</option>
+        </select>
+        
+
+        <label for="filter-status">Filter by Status:</label>
+        <select id="filter-status">
+            <option value="">All</option>
+            <option value="open">Open</option>
+            <option value="in-progress">In Progress</option>
+            <option value="awaiting-response">Awaiting Response</option>
+            <option value="closed">Closed</option>
+        </select>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th class="ticket-number">No.</th>
+                    <th>Updated</th>
+                    <th>Request Type</th>
+                    <th>Request Title</th>
+                    <th>Latest Notes</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="tickets-container"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Define these selectors globally
+    const sortTicketsSelect = document.getElementById('sort-tickets');
+    const filterStatusSelect = document.getElementById('filter-status');
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM fully loaded and parsed");
+        
+        // Initial fetch
+        fetchTickets(sortTicketsSelect.value, filterStatusSelect.value);
+
+        // Event listeners for sorting and filtering
+        sortTicketsSelect.addEventListener('change', () => {
+            console.log("Sort by changed to:", sortTicketsSelect.value);
+            fetchTickets(sortTicketsSelect.value, filterStatusSelect.value);
+        });
+        
+        filterStatusSelect.addEventListener('change', () => {
+            console.log("Filter by status changed to:", filterStatusSelect.value);
+            fetchTickets(sortTicketsSelect.value, filterStatusSelect.value);
+        });
+    });
+
+    function fetchTickets(sortOrder, statusFilter) {
+        console.log("Fetching tickets with sortOrder:", sortOrder, "and statusFilter:", statusFilter);
+        
+        let url = `admin_dashboard.php?${statusFilter ? `status=${statusFilter}&` : ''}`;
+
+        if (sortOrder === 'status') {
+            url += 'sort=status';
+        } else if (sortOrder === 'updated-asc') {
+            url += 'sort=updated-asc';
+        } else {
+            url += 'sort=updated-desc';
+        }
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.redirect) {
+                    console.log("Redirecting to:", data.redirect);
+                    window.location.href = data.redirect;
+                    return;
+                }
+                if (data.success === false) {
+                    console.error('Authorization error or data fetching issue.');
+                    return;
+                }
+                console.log("Tickets fetched successfully:", data.tickets);
+                displayTickets(data.tickets);
+            })
+            .catch(error => console.error('Error fetching tickets:', error));
+    }
+
+    window.searchTicket = function() {
+        const ticketId = document.getElementById('search-ticket').value.trim();
+        if (!ticketId) {
+            console.log("No ticket ID entered, fetching all tickets.");
+            fetchTickets(sortTicketsSelect.value, filterStatusSelect.value);
+            return;
+        }
+        console.log("Searching for ticket ID:", ticketId);
+        
+        fetch(`admin_dashboard.php?ticket_id=${ticketId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    console.error("Not authenticated, redirecting to login page");
+                    window.location.href = 'admin_login.html';
+                    return;
+                }
+                console.log("Ticket search result:", data.tickets);
+                displayTickets(data.tickets);
+            })
+            .catch(error => console.error('Error searching for ticket:', error));
+    };
+
+    function displayTickets(tickets) {
+        console.log("Displaying tickets:", tickets);
+        
+        const ticketsContainer = document.getElementById('tickets-container');
+        ticketsContainer.innerHTML = '';
+        
+        tickets.forEach(ticket => {
+            const statusClass = `status-${ticket.status.replace(/_/g, '-')}`;
+            ticketsContainer.insertAdjacentHTML('beforeend', `
+                <tr class="ticket-row" onclick="toggleExpand(this)">
+                    <td>${ticket.id}</td>
+                    <td>${formatDateTime(ticket.updated)}</td>
+                    <td>${ticket.category}</td>
+                    <td>${ticket.title}</td>
+                    <td>${ticket.latest_note || 'No notes'}</td>
+                    <td><span class="status ${statusClass}">${ticket.status}</span></td>
+                </tr>
+                <tr class="expandable-content">
+                    <td colspan="6">
+                        <div class="expanded-details">
+                            <h3>Ticket Details</h3>
+                            <label>Ticket Number:</label> ${ticket.id}<br>
+                            <label>Created At:</label> ${formatDateTime(ticket.created)}<br>
+                            <label>Updated At:</label> ${formatDateTime(ticket.updated)}<br>
+                            <label>Request Type:</label> ${ticket.category}<br>
+                            <label>Name:</label> ${ticket.name}<br>
+                            <label>Email:</label> ${ticket.email}<br>
+                            <div class="description-section">
+                                <h3>Description</h3>
+                                <p>${ticket.description}</p>
+                            </div>
+                            <div class="notes-section">
+                                <h3>Notes</h3>
+                                ${ticket.notes ? ticket.notes.split(';').map(note => {
+                                    const [response, created_at] = note.split('::');
+                                    return `<div class="note"><p>${response}</p><span class="note-time">${formatDateTime(created_at)}</span></div>`;
+                                }).join('') : '<p>No notes available</p>'}
+                            </div>
+                            <div class="status-section">
+                                <label for="status-update-${ticket.id}">Update Status:</label>
+                                <select id="status-update-${ticket.id}" onchange="updateStatus(${ticket.id}, this.value)">
+                                    <option value="open" ${ticket.status === 'open' ? 'selected' : ''}>Open</option>
+                                    <option value="in-progress" ${ticket.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
+                                    <option value="awaiting-response" ${ticket.status === 'awaiting-response' ? 'selected' : ''}>Awaiting Response</option>
+                                    <option value="closed" ${ticket.status === 'closed' ? 'selected' : ''}>Closed</option>
+                                </select>
+                            </div>
+                            <div class="response-section">
+                                <label for="response-${ticket.id}">Add Response:</label>
+                                <textarea id="response-${ticket.id}" rows="3"></textarea>
+                                <button onclick="addResponse(${ticket.id})" class="save-button">Submit Response</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    function formatDateTime(dateTimeStr) {
+        const dateObj = new Date(dateTimeStr);
+        if (isNaN(dateObj.getTime())) return 'Invalid Date';
+        let hours = dateObj.getHours();
+        const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const day = dateObj.getDate().toString().padStart(2, '0');
+        const year = dateObj.getFullYear();
+        return `${hours}:${minutes} ${ampm} ${month}/${day}/${year}`;
+    }
+
+    function updateStatus(ticketId, newStatus) {
+        console.log("Updating status for ticket ID:", ticketId, "to new status:", newStatus);
+
+        let url;
+        if (newStatus === 'closed') {
+            url = 'close_ticket.php';
+        } else if (newStatus === 'open') {
+            url = 'reopen_ticket.php';
+        } else {
+            url = 'update_ticket.php';
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: ticketId, status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Update status response:", data);
+            if (data.success) {
+                alert('Status updated successfully.');
+                fetchTickets(sortTicketsSelect.value, filterStatusSelect.value); // Refresh tickets
+            } else {
+                alert('Failed to update status.');
+            }
+        })
+        .catch(error => console.error('Error updating status:', error));
+    }
+
+
+    function addResponse(ticketId) {
+        console.log("Adding response for ticket ID:", ticketId);
+        
+        const responseText = document.getElementById(`response-${ticketId}`).value;
+        fetch('add_response.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: ticketId, response: responseText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Add response response:", data);
+            if (data.success) {
+                alert('Response added successfully.');
+                fetchTickets(sortTicketsSelect.value, filterStatusSelect.value); // Refresh tickets
+            } else {
+                alert('Failed to add response.');
+            }
+        })
+        .catch(error => console.error('Error adding response:', error));
+    }
+
+    window.toggleExpand = function(row) {
+        console.log("Toggling expand for row:", row);
+        
+        const expandableRow = row.nextElementSibling;
+        expandableRow.classList.toggle('expanded');
+    };
+</script>
+
+
+</body>
+</html>

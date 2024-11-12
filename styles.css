@@ -1,0 +1,130 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header {
+  background-color: #00205B;
+  color: white;
+  text-align: center;
+  padding: 1em;
+  width: 100%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+nav ul {
+  background-color: #862633;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  text-align: center;
+}
+
+nav ul li {
+  display: inline;
+}
+
+nav ul li a {
+  padding: 15px;
+  display: inline-block;
+  color: white;
+  text-decoration: none;
+}
+
+nav ul li a:hover {
+  background-color: #00205B;
+}
+
+section {
+  margin: 20px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  overflow: auto;
+}
+
+form input, form select, form textarea, form button {
+  display: block;
+  margin-bottom: 10px;
+  padding: 10px;
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+form button {
+  background-color: #862633;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: #00205B;
+}
+
+footer {
+  background-color: #00205B;
+  color: white;
+  text-align: center;
+  padding: 1em;
+  width: 100%;
+  position: relative;
+  bottom: 0;
+  margin-top: auto;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+.delete-btn {
+  color: red;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+@media (max-width: 768px) {
+  nav ul li {
+    display: block;
+    padding: 10px 0;
+  }
+
+  form input, form select, form textarea, form button {
+    width: 100%;
+    font-size: 1em;
+  }
+
+  section {
+    padding: 15px;
+  }
+
+  footer {
+    font-size: 0.9em;
+  }
+}
