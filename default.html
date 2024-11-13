@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="main page with redirects">
+    <meta name="author" content="Jonah Carpenter">
+    <title>Turing Ticket System</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #333; /* Dark gray background */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            background-color: white; /* White background for the form */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #001e65; /* Navy blue text color */
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #862633; /* Dark red button */
+            color: white;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #00205B; /* Darker blue on hover */
+        }
+
+        footer {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            background-color: #001e65; /* Navy blue footer */
+            color: white;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Turing Ticket System</h1>
+        <button onclick="window.location.href='submit_ticket.html'">Submit a Ticket</button>
+        <button onclick="window.location.href='admin_login.html'">Admin Login</button>
+        <button onclick="window.location.href='reset_password.html'">Reset Password</button>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Turing Ticket System</p>
+    </footer>
+
+</body>
+</html>
