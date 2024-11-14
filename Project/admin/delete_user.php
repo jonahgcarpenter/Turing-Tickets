@@ -1,5 +1,5 @@
 <?php
-require_once './config/database.php';
+require_once '../config/database.php';
 
 if (isset($_GET['id'])) {
     $adminId = $_GET['id'];

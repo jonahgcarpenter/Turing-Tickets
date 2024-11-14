@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const formData = new FormData(ticketForm);
 
-            fetch('./tickets/submit_ticket.php', {
+            fetch('../tickets/submit_ticket.php', {
                 method: 'POST',
                 body: formData
             })
@@ -47,14 +47,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (adminLoginBtn) {
         adminLoginBtn.addEventListener('click', function() {
-            window.location.href = 'login.html';
+            window.location.href = '../admin/admin_login.html';
         });
     }
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
             sessionStorage.removeItem('loggedInUser');
-            window.location.href = 'login.html';
+            window.location.href = '../admin/admin_login.html';
         });
     }
 });

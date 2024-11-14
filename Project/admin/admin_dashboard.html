@@ -180,7 +180,7 @@
     <h1>Admin Dashboard</h1>
     <nav>
         <a href="add_admin.php">Add Admin</a>
-        <a href="./auth/logout.php">Logout</a>
+        <a href="../auth/logout.php">Logout</a>
     </nav>
 </header>
 
@@ -389,11 +389,11 @@
 
         let url;
         if (newStatus === 'closed') {
-            url = './tickets/close_ticket.php';
+            url = '../tickets/close_ticket.php';
         } else if (newStatus === 'open') {
-            url = './tickets/reopen_ticket.php';
+            url = '../tickets/reopen_ticket.php';
         } else {
-            url = './tickets/update_ticket.php';
+            url = '../tickets/update_ticket.php';
         }
 
         fetch(url, {
@@ -419,7 +419,7 @@
         console.log("Adding response for ticket ID:", ticketId);
         
         const responseText = document.getElementById(`response-${ticketId}`).value;
-        fetch('./tickets/add_response.php', {
+        fetch('../tickets/add_response.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ticket_id: ticketId, response: responseText })
