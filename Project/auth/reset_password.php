@@ -1,5 +1,5 @@
 <?php
-require_once('database.php');
+require_once('./config/database.php');
 session_start();
 
 $pdo = Database::dbConnect();
@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $update_stmt->bindParam(':username', $login);
 
                 if ($update_stmt->execute()) {
-                    header('Location: admin_login.html');
+                    header('Location: ./admin/admin_login.html');
                     exit();
                 } else {
                     echo "Error updating password.";

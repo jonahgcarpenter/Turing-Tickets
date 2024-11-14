@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const formData = new FormData(ticketForm);
 
-            fetch('submit_ticket.php', {
+            fetch('./tickets/submit_ticket.php', {
                 method: 'POST',
                 body: formData
             })

@@ -6,28 +6,28 @@ project_dir = r"U:\Jonah\School\24-25\CSCI 487\Project"
 
 # Define old and new paths with appropriate relative paths using '../'
 paths_to_update = {
-    # admin folder
+    # admin folder (relative to the inner Project folder)
     "add_admin.php": r"./admin/add_admin.php",
     "admin_dashboard.html": r"./admin/admin_dashboard.html",
     "admin_dashboard.php": r"./admin/admin_dashboard.php",
     "admin_login.html": r"./admin/admin_login.html",
     "delete_user.php": r"./admin/delete_user.php",
     
-    # auth folder
+    # auth folder (relative to the inner Project folder)
     "logout.php": r"./auth/logout.php",
     "reset_password.html": r"./auth/reset_password.html",
     "reset_password.php": r"./auth/reset_password.php",
     
-    # config folder
+    # config folder (relative to the inner Project folder)
     "connect.php": r"./config/connect.php",
     "database.php": r"./config/database.php",
     "database.sql": r"./config/database.sql",
     
-    # js folder
+    # js folder (relative to the inner Project folder)
     "login.js": r"./js/login.js",
     "script.js": r"./js/script.js",
     
-    # tickets folder
+    # tickets folder (relative to the inner Project folder)
     "add_response.php": r"./tickets/add_response.php",
     "close_ticket.php": r"./tickets/close_ticket.php",
     "reopen_ticket.php": r"./tickets/reopen_ticket.php",
@@ -36,9 +36,9 @@ paths_to_update = {
     "successfully_submitted.html": r"./tickets/successfully_submitted.html",
     "update_ticket.php": r"./tickets/update_ticket.php",
     
-    # Root directory files in the outer Project folder (from inner Project)
-    "styles.css": r"../../styles.css",
-    "default.html": r"../../index.html",
+    # Root directory files in the outer Project folder (relative to inner Project)
+    "styles.css": r"../styles.css",
+    "default.html": r"../index.html",
 }
 
 # Specify file types to include in the search

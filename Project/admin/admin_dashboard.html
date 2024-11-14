@@ -6,7 +6,7 @@
     <meta name="description" content="Ticket dashboard for admins">
     <meta name="author" content="Jonah Carpenter">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
     <style>
         /* Base styling */
         body {
@@ -179,8 +179,8 @@
 <header>
     <h1>Admin Dashboard</h1>
     <nav>
-        <a href="add_admin.php">Add Admin</a>
-        <a href="logout.php">Logout</a>
+        <a href="./admin/add_admin.php">Add Admin</a>
+        <a href="./auth/logout.php">Logout</a>
     </nav>
 </header>
 
@@ -251,7 +251,7 @@
     function fetchTickets(sortOrder, statusFilter) {
         console.log("Fetching tickets with sortOrder:", sortOrder, "and statusFilter:", statusFilter);
         
-        let url = `admin_dashboard.php?${statusFilter ? `status=${statusFilter}&` : ''}`;
+        let url = `./admin/admin_dashboard.php?${statusFilter ? `status=${statusFilter}&` : ''}`;
 
         if (sortOrder === 'status') {
             url += 'sort=status';
@@ -293,7 +293,7 @@
         }
         console.log("Searching for ticket ID:", ticketId);
         
-        fetch(`admin_dashboard.php?ticket_id=${ticketId}`)
+        fetch(`./admin/admin_dashboard.php?ticket_id=${ticketId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -303,7 +303,7 @@
             .then(data => {
                 if (!data.success) {
                     console.error("Not authenticated, redirecting to login page");
-                    window.location.href = 'admin_login.html';
+                    window.location.href = './admin/admin_login.html';
                     return;
                 }
                 console.log("Ticket search result:", data.tickets);
@@ -389,11 +389,11 @@
 
         let url;
         if (newStatus === 'closed') {
-            url = 'close_ticket.php';
+            url = './tickets/close_ticket.php';
         } else if (newStatus === 'open') {
-            url = 'reopen_ticket.php';
+            url = './tickets/reopen_ticket.php';
         } else {
-            url = 'update_ticket.php';
+            url = './tickets/update_ticket.php';
         }
 
         fetch(url, {
@@ -419,7 +419,7 @@
         console.log("Adding response for ticket ID:", ticketId);
         
         const responseText = document.getElementById(`response-${ticketId}`).value;
-        fetch('add_response.php', {
+        fetch('./tickets/add_response.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ticket_id: ticketId, response: responseText })

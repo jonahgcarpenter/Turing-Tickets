@@ -1,5 +1,5 @@
 <?php
-require_once 'database.php';
+require_once './config/database.php';
 session_start();
 
 $pdo = Database::dbConnect();
@@ -9,10 +9,10 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     // Detect AJAX request
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'redirect' => 'admin_login.html']);
+        echo json_encode(['success' => false, 'redirect' => './admin/admin_login.html']);
     } else {
         // Redirect for non-AJAX requests
-        header("Location: admin_login.html");
+        header("Location: ./admin/admin_login.html");
     }
     exit;
 }
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->bindParam(':email', $email);
 
     if ($stmt->execute()) {
-        header('Location: add_admin.php?success=1');
+        header('Location: ./admin/add_admin.php?success=1');
         exit;
     } else {
         echo "<p style='color:red;'>Error adding admin. Please try again.</p>";
@@ -45,7 +45,7 @@ $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Management</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
     <style>
         /* Base styling */
         body {
@@ -193,7 +193,7 @@ $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <header>
     <h1>Admin Management</h1>
-    <button id="back-btn" onclick="window.location.href='admin_dashboard.html'">Back</button>
+    <button id="back-btn" onclick="window.location.href='./admin/admin_dashboard.html'">Back</button>
 </header>
 
 <section id="add-admin">
@@ -202,7 +202,7 @@ $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php if (isset($_GET['success'])): ?>
             <p style="color: green;">Admin added successfully!</p>
         <?php endif; ?>
-        <form action="add_admin.php" method="POST">
+        <form action="./admin/add_admin.php" method="POST">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
 
@@ -246,7 +246,7 @@ $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <script>
     function confirmDelete(adminId) {
         if (confirm('Are you sure you want to delete this admin?')) {
-            window.location.href = 'delete_user.php?id=' + adminId;
+            window.location.href = './admin/delete_user.php?id=' + adminId;
         }
     }
 </script>

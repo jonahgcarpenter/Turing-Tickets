@@ -1,5 +1,5 @@
 <?php
-require_once 'database.php';
+require_once './config/database.php';
 session_start();
 
 $pdo = Database::dbConnect();
@@ -9,11 +9,11 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
         echo json_encode([
             'success' => false,
-            'redirect' => 'admin_login.html',
+            'redirect' => './admin/admin_login.html',
             'message' => 'Not authenticated'
         ]);
     } else {
-        header("Location: admin_login.html");
+        header("Location: ./admin/admin_login.html");
     }
     exit;
 }
