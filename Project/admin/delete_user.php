@@ -9,7 +9,7 @@ if (isset($_GET['id'])) {
     $stmt->bindParam(':id', $adminId);
 
     if ($stmt->execute()) {
-        header('Location: ./admin/add_admin.php');
+        header('Location: add_admin.php');
         exit;
     } else {
         echo "Error deleting admin.";

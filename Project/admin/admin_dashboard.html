@@ -179,7 +179,7 @@
 <header>
     <h1>Admin Dashboard</h1>
     <nav>
-        <a href="./admin/add_admin.php">Add Admin</a>
+        <a href="add_admin.php">Add Admin</a>
         <a href="./auth/logout.php">Logout</a>
     </nav>
 </header>
@@ -251,7 +251,7 @@
     function fetchTickets(sortOrder, statusFilter) {
         console.log("Fetching tickets with sortOrder:", sortOrder, "and statusFilter:", statusFilter);
         
-        let url = `./admin/admin_dashboard.php?${statusFilter ? `status=${statusFilter}&` : ''}`;
+        let url = `admin_dashboard.php?${statusFilter ? `status=${statusFilter}&` : ''}`;
 
         if (sortOrder === 'status') {
             url += 'sort=status';
@@ -293,7 +293,7 @@
         }
         console.log("Searching for ticket ID:", ticketId);
         
-        fetch(`./admin/admin_dashboard.php?ticket_id=${ticketId}`)
+        fetch(`admin_dashboard.php?ticket_id=${ticketId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -303,7 +303,7 @@
             .then(data => {
                 if (!data.success) {
                     console.error("Not authenticated, redirecting to login page");
-                    window.location.href = './admin/admin_login.html';
+                    window.location.href = 'admin_login.html';
                     return;
                 }
                 console.log("Ticket search result:", data.tickets);
