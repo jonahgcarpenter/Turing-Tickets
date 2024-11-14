@@ -1,221 +1,212 @@
+// Declare global variables
+let ticketsContainer, sortTicketsSelect, filterStatusSelect, searchTicketInput;
+
 document.addEventListener('DOMContentLoaded', function () {
+    console.log("DOM fully loaded and parsed");
+
+    // Initialize global variables
+    ticketsContainer = document.getElementById('tickets-container');
+    sortTicketsSelect = document.getElementById('sort-tickets');
+    filterStatusSelect = document.getElementById('filter-status');
+    searchTicketInput = document.getElementById('search-ticket'); // Assign the search input element
+
+    // Log to ensure searchTicketInput is assigned correctly
+    if (searchTicketInput) {
+        console.log("searchTicketInput found:", searchTicketInput);
+    } else {
+        console.error("searchTicketInput not found. Check the HTML element ID.");
+    }
+
+    // Element selectors
     const submitTicketSection = document.getElementById('submit-ticket');
     const ticketForm = document.getElementById('ticket-form');
     const ticketList = document.getElementById('ticket-list');
     const logoutBtn = document.getElementById('logout-btn');
     const adminLoginBtn = document.getElementById('admin-login-btn');
-
-    // Remove or comment out the user role check
-    /*
-    const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
-
-    if (user && user.role === 'admin') {
-        submitTicketSection.style.display = 'none';
-        fetch('get_tickets.php')
-            .then(response => response.json())
-            .then(data => {
-                data.tickets.forEach(ticket => {
-                    const ticketDiv = document.createElement('div');
-                    ticketDiv.innerHTML = `
-                        <h3>Ticket #${ticket.id}</h3>
-                        <p><strong>Category:</strong> ${ticket.category}</p>
-                        <p><strong>Description:</strong> ${ticket.description}</p>
-                        <p><strong>Status:</strong> ${ticket.status}</p>
-                    `;
-                    ticketList.appendChild(ticketDiv);
-                });
-            });
-    } else {
-    */
-
-    ticketForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-    
-        const formData = new FormData(ticketForm);
-    
-        fetch('submit_ticket.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text()) // Retrieve response as text for debugging
-        .then(text => {
-            console.log("Raw response:", text); // Log raw response to check its content
-            try {
-                const data = JSON.parse(text); // Attempt to parse JSON
-                if (data.success) {
-                    alert('Ticket Submitted!');
-                    ticketForm.reset();
-                    window.location.href = 'successfully_submitted.html?ticket_id=' + data.ticket_id;
-                } else {
-                    alert('Error submitting the ticket.');
-                    console.error("Server response error:", data); // Log the response if success is false
-                }
-            } catch (e) {
-                console.error("JSON parsing error:", e); // Log any JSON parsing errors
-                console.error("Response was not valid JSON:", text); // Show the non-JSON response
-                alert("An error occurred while processing the server response.");
-            }
-        })
-        .catch(error => {
-            console.error('Fetch error:', error); // Log fetch errors (e.g., network issues)
-            alert('An error occurred while submitting the ticket.');
-        });
-    });       
-
-    // }
-
-    if (adminLoginBtn) {
-        adminLoginBtn.addEventListener('click', function() {
-            window.location.href = '../admin/admin_login.html';
-        });
-    }
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            sessionStorage.removeItem('loggedInUser');
-            window.location.href = '../admin/admin_login.html';
-        });
-    }
-});
-
-document.getElementById('home-btn').addEventListener('click', function() {
-    window.location.href = '../../index.html';
-});
-
-document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
     const loginError = document.getElementById('login-error');
+    const homeBtn = document.getElementById('home-btn');
+    const ticketIdElement = document.getElementById('ticket-id');
 
-    loginForm.addEventListener('submit', function(event) {
-        event.preventDefault();
+    // Initialize sorting and filtering if elements exist
+    if (sortTicketsSelect && filterStatusSelect) {
+        initializeTicketSortingAndFiltering(sortTicketsSelect, filterStatusSelect);
+    } else {
+        console.error("Sort or filter element not found.");
+    }
 
-        const formData = new FormData(loginForm);
+    // Other event listeners and logic
+    if (ticketForm) {
+        ticketForm.addEventListener('submit', handleTicketSubmission);
+    }
 
-        fetch('../auth/login.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                sessionStorage.setItem('loggedInUser', JSON.stringify(data.user));
-                window.location.href = '../admin/admin_dashboard.html';
-            } else {
-                loginError.textContent = data.error;
-                loginError.style.display = 'block';
-            }
-        })
-        .catch(error => {
-            loginError.textContent = 'An error occurred. Please try again.';
-            loginError.style.display = 'block';
-            console.error('Error:', error);
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLoginForm);
+    }
+
+    if (homeBtn) {
+        homeBtn.addEventListener('click', () => {
+            window.location.href = '../../index.html';
         });
-    });
+    }
+
+    if (ticketIdElement) {
+        displayTicketId();
+    }
+
+    // Attach search function to the search button
+    if (searchTicketInput) {
+        window.searchTicket = searchTicket; // Ensure searchTicket is accessible globally
+    }
+
+    const adminForm = document.getElementById('admin-form');
+    if (adminForm) {
+        adminForm.addEventListener('submit', addAdmin);
+    }
 });
 
-function confirmDelete(adminId) {
-    if (confirm('Are you sure you want to delete this admin?')) {
-        window.location.href = '../admin/delete_user.php?id=' + adminId;
-    }
+/**
+ * Handle ticket submission form
+ */
+function handleTicketSubmission(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+
+    fetch('submit_ticket.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(text => {
+        console.log("Raw response:", text);
+        try {
+            const data = JSON.parse(text);
+            if (data.success) {
+                alert('Ticket Submitted!');
+                event.target.reset();
+                window.location.href = 'successfully_submitted.html?ticket_id=' + data.ticket_id;
+            } else {
+                alert('Error submitting the ticket.');
+                console.error("Server response error:", data);
+            }
+        } catch (e) {
+            console.error("JSON parsing error:", e);
+            alert("An error occurred while processing the server response.");
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert('An error occurred while submitting the ticket.');
+    });
 }
 
-// Define these selectors globally
-const sortTicketsSelect = document.getElementById('sort-tickets');
-const filterStatusSelect = document.getElementById('filter-status');
+/**
+ * Handle login form submission
+ */
+function handleLoginForm(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM fully loaded and parsed");
-    
-    // Initial fetch
+    fetch('../auth/login.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            window.location.href = '../admin/admin_dashboard.html';
+        } else {
+            loginError.textContent = data.error;
+            loginError.style.display = 'block';
+        }
+    })
+    .catch(error => {
+        loginError.textContent = 'An error occurred. Please try again.';
+        loginError.style.display = 'block';
+        console.error('Error:', error);
+    });
+}
+
+/**
+ * Initialize sorting and filtering for tickets
+ */
+function initializeTicketSortingAndFiltering(sortTicketsSelect, filterStatusSelect) {
     fetchTickets(sortTicketsSelect.value, filterStatusSelect.value);
 
-    // Event listeners for sorting and filtering
     sortTicketsSelect.addEventListener('change', () => {
-        console.log("Sort by changed to:", sortTicketsSelect.value);
         fetchTickets(sortTicketsSelect.value, filterStatusSelect.value);
     });
-    
+
     filterStatusSelect.addEventListener('change', () => {
-        console.log("Filter by status changed to:", filterStatusSelect.value);
         fetchTickets(sortTicketsSelect.value, filterStatusSelect.value);
     });
-});
-
-function fetchTickets(sortOrder, statusFilter) {
-    console.log("Fetching tickets with sortOrder:", sortOrder, "and statusFilter:", statusFilter);
-    
-    let url = `admin_dashboard.php?${statusFilter ? `status=${statusFilter}&` : ''}`;
-
-    if (sortOrder === 'status') {
-        url += 'sort=status';
-    } else if (sortOrder === 'updated-asc') {
-        url += 'sort=updated-asc';
-    } else {
-        url += 'sort=updated-desc';
-    }
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.redirect) {
-                console.log("Redirecting to:", data.redirect);
-                window.location.href = data.redirect;
-                return;
-            }
-            if (data.success === false) {
-                console.error('Authorization error or data fetching issue.');
-                return;
-            }
-            console.log("Tickets fetched successfully:", data.tickets);
-            displayTickets(data.tickets);
-        })
-        .catch(error => console.error('Error fetching tickets:', error));
 }
 
-window.searchTicket = function() {
-    const ticketId = document.getElementById('search-ticket').value.trim();
+/**
+ * Fetch and display tickets based on sort order and filter
+ */
+function fetchTickets(sortOrder, statusFilter) {
+    let url = `admin_dashboard.php?${statusFilter ? `status=${statusFilter}&` : ''}`;
+
+    if (sortOrder === 'status') url += 'sort=status';
+    else if (sortOrder === 'updated-asc') url += 'sort=updated-asc';
+    else url += 'sort=updated-desc';
+
+    fetch(url)
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        if (data.redirect) {
+            window.location.href = data.redirect;
+            return;
+        }
+        if (data.success === false) {
+            console.error('Authorization error or data fetching issue.');
+            return;
+        }
+        displayTickets(data.tickets); // No need to pass ticketsContainer
+    })
+    .catch(error => console.error('Error fetching tickets:', error));
+}
+
+/**
+ * Search for a ticket by ID
+ */
+function searchTicket() {
+    // Check if searchTicketInput is available
+    if (!searchTicketInput) {
+        console.error("searchTicketInput is not defined. Ensure it is correctly assigned.");
+        return;
+    }
+
+    const ticketId = searchTicketInput.value.trim();
     if (!ticketId) {
-        console.log("No ticket ID entered, fetching all tickets.");
         fetchTickets(sortTicketsSelect.value, filterStatusSelect.value);
         return;
     }
-    console.log("Searching for ticket ID:", ticketId);
-    
-    fetch(`admin_dashboard.php?ticket_id=${ticketId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (!data.success) {
-                console.error("Not authenticated, redirecting to login page");
-                window.location.href = 'admin_login.html';
-                return;
-            }
-            console.log("Ticket search result:", data.tickets);
-            displayTickets(data.tickets);
-        })
-        .catch(error => console.error('Error searching for ticket:', error));
-};
 
+    fetch(`admin_dashboard.php?ticket_id=${ticketId}`)
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        displayTickets(data.tickets); // No need to pass ticketsContainer
+    })
+    .catch(error => console.error('Error searching for ticket:', error));
+}
+
+/**
+ * Display a list of tickets
+ */
 function displayTickets(tickets) {
-    console.log("Displaying tickets:", tickets);
-    
-    const ticketsContainer = document.getElementById('tickets-container');
-    ticketsContainer.innerHTML = '';
-    
+    ticketsContainer.innerHTML = ''; // Access the global ticketsContainer
+
     tickets.forEach(ticket => {
         const statusClass = `status-${ticket.status.replace(/_/g, '-')}`;
         ticketsContainer.insertAdjacentHTML('beforeend', `
@@ -237,10 +228,12 @@ function displayTickets(tickets) {
                         <label>Request Type:</label> ${ticket.category}<br>
                         <label>Name:</label> ${ticket.name}<br>
                         <label>Email:</label> ${ticket.email}<br>
+                        
                         <div class="description-section">
                             <h3>Description</h3>
                             <p>${ticket.description}</p>
                         </div>
+                        
                         <div class="notes-section">
                             <h3>Notes</h3>
                             ${ticket.notes ? ticket.notes.split(';').map(note => {
@@ -248,6 +241,7 @@ function displayTickets(tickets) {
                                 return `<div class="note"><p>${response}</p><span class="note-time">${formatDateTime(created_at)}</span></div>`;
                             }).join('') : '<p>No notes available</p>'}
                         </div>
+                        
                         <div class="status-section">
                             <label for="status-update-${ticket.id}">Update Status:</label>
                             <select id="status-update-${ticket.id}" onchange="updateStatus(${ticket.id}, this.value)">
@@ -257,6 +251,7 @@ function displayTickets(tickets) {
                                 <option value="closed" ${ticket.status === 'closed' ? 'selected' : ''}>Closed</option>
                             </select>
                         </div>
+                        
                         <div class="response-section">
                             <label for="response-${ticket.id}">Add Response:</label>
                             <textarea id="response-${ticket.id}" rows="3"></textarea>
@@ -269,6 +264,9 @@ function displayTickets(tickets) {
     });
 }
 
+/**
+ * Format date and time
+ */
 function formatDateTime(dateTimeStr) {
     const dateObj = new Date(dateTimeStr);
     if (isNaN(dateObj.getTime())) return 'Invalid Date';
@@ -276,79 +274,129 @@ function formatDateTime(dateTimeStr) {
     const minutes = dateObj.getMinutes().toString().padStart(2, '0');
     const ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12 || 12;
-    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-    const day = dateObj.getDate().toString().padStart(2, '0');
-    const year = dateObj.getFullYear();
-    return `${hours}:${minutes} ${ampm} ${month}/${day}/${year}`;
+    return `${hours}:${minutes} ${ampm} ${dateObj.getMonth() + 1}/${dateObj.getDate()}/${dateObj.getFullYear()}`;
 }
 
-function updateStatus(ticketId, newStatus) {
-    console.log("Updating status for ticket ID:", ticketId, "to new status:", newStatus);
+/**
+ * Display the ticket ID on the confirmation page
+ */
+function displayTicketId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketId = urlParams.get('ticket_id');
+    ticketIdElement.textContent = ticketId || 'N/A';
+}
 
-    let url;
-    if (newStatus === 'closed') {
-        url = '../tickets/close_ticket.php';
-    } else if (newStatus === 'open') {
-        url = '../tickets/reopen_ticket.php';
-    } else {
-        url = '../tickets/update_ticket.php';
+/**
+ * Toggle the expansion of a ticket row
+ */
+function toggleExpand(row) {
+    const nextRow = row.nextElementSibling;
+    if (nextRow && nextRow.classList.contains('expandable-content')) {
+        nextRow.classList.toggle('expanded');
     }
+}
+
+/**
+ * Update ticket status
+ */
+function updateStatus(ticketId, newStatus) {
+    let url = (newStatus === 'closed') ? '../tickets/close_ticket.php' : (newStatus === 'open') ? '../tickets/reopen_ticket.php' : '../tickets/update_ticket.php';
+
+    console.log(`Updating status for Ticket ID: ${ticketId} to: ${newStatus}`); // Debug
 
     fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticket_id: ticketId, status: newStatus })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log("Status update response received:", response); // Debug
+        return response.json();
+    })
     .then(data => {
-        console.log("Update status response:", data);
+        console.log("Status update data:", data); // Debug
         if (data.success) {
-            alert('Status updated successfully.');
+            alert(`Status updated successfully to '${newStatus}' for Ticket ID: ${ticketId}`);
             fetchTickets(sortTicketsSelect.value, filterStatusSelect.value); // Refresh tickets
         } else {
-            alert('Failed to update status.');
+            alert('Failed to update status. Please check the console for more details.');
+            console.error("Status Update Failure:", data);
         }
     })
-    .catch(error => console.error('Error updating status:', error));
+    .catch(error => {
+        console.error('Error updating status:', error);
+        alert('An error occurred while updating the status. See console for details.');
+    });
 }
 
-
+/**
+ * Add ticket response
+ */
 function addResponse(ticketId) {
-    console.log("Adding response for ticket ID:", ticketId);
-    
     const responseText = document.getElementById(`response-${ticketId}`).value;
+
+    console.log(`Adding response for Ticket ID: ${ticketId} with content:`, responseText); // Debug
+
     fetch('../tickets/add_response.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticket_id: ticketId, response: responseText })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log("Add response received:", response); // Debug
+        return response.json();
+    })
     .then(data => {
-        console.log("Add response response:", data);
+        console.log("Add response data:", data); // Debug
         if (data.success) {
-            alert('Response added successfully.');
+            alert(`Response added successfully for Ticket ID: ${ticketId}`);
             fetchTickets(sortTicketsSelect.value, filterStatusSelect.value); // Refresh tickets
         } else {
-            alert('Failed to add response.');
+            alert('Failed to add response. Please check the console for more details.');
+            console.error("Add Response Failure:", data);
         }
     })
-    .catch(error => console.error('Error adding response:', error));
+    .catch(error => {
+        console.error('Error adding response:', error);
+        alert('An error occurred while adding the response. See console for details.');
+    });
 }
 
-window.toggleExpand = function(row) {
-    console.log("Toggling expand for row:", row);
-    
-    const expandableRow = row.nextElementSibling;
-    expandableRow.classList.toggle('expanded');
-};
+/**
+ * Add admin
+ */
+function addAdmin(event) {
+    event.preventDefault();
 
-// Retrieve the ticket_id from the URL query parameters
-const urlParams = new URLSearchParams(window.location.search);
-const ticketId = urlParams.get('ticket_id');
+    const adminForm = document.getElementById('admin-form');
+    const formData = new FormData(adminForm);
 
-// Display the ticket ID in the HTML
-if (ticketId) {
-    document.getElementById('ticket-id').textContent = ticketId;
-} else {
-    document.getElementById('ticket-id').textContent = 'N/A'; // Default message if ticket ID is missing
+    console.log("Adding new admin with data:", Array.from(formData.entries())); // Debug
+
+    fetch('../admin/add_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Add Admin Response:", data); // Debug
+        if (data.success) {
+            alert('Admin added successfully.');
+            adminForm.reset();
+            // Optionally, update the page or redirect
+        } else {
+            alert('Failed to add admin. Please check the console for more details.');
+            console.error("Add Admin Failure:", data);
+        }
+    })
+    .catch(error => {
+        console.error('Error adding admin:', error);
+        alert('An error occurred while adding the admin. See console for details.');
+    });
+}
+
+function confirmDelete(adminId) {
+    if (confirm('Are you sure you want to delete this admin?')) {
+        window.location.href = '../admin/delete_user.php?id=' + adminId;
+    }
 }
