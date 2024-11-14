@@ -1,6 +1,8 @@
 <?php
 require_once('../config/database.php');
 
+header('Content-Type: application/json'); // Set header for JSON response
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $name = $_POST['name'];
     $email = $_POST['email'];
@@ -20,13 +22,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($stmt->execute()) {
             $ticket_id = $pdo->lastInsertId();
-            header("Location: successfully_submitted.html?ticket_id=" . $ticket_id);
-            exit;
+            echo json_encode(["success" => true, "ticket_id" => $ticket_id]); // Return JSON response
+        } else {
+            echo json_encode(["success" => false, "message" => "Failed to submit ticket."]);
         }
     } catch (Exception $e) {
-        echo "Error: " . $e->getMessage();
+        echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]); // Return error message as JSON
     }
 
     Database::dbDisconnect();
+} else {
+    echo json_encode(["success" => false, "message" => "Invalid request method."]);
 }
 ?>
