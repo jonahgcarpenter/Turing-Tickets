@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const formData = new FormData(loginForm);
 
-        fetch('login.php', {
+        fetch('auth/login.php', {
             method: 'POST',
             body: formData
         })
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 sessionStorage.setItem('loggedInUser', JSON.stringify(data.user));
-                window.location.href = 'admin_dashboard.html';
+                window.location.href = 'admin/Project\admin\admin_dashboard.html';
             } else {
                 loginError.textContent = data.error;
                 loginError.style.display = 'block';

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="page to reset password for admins">
+    <meta name="description" content="login for admins">
     <meta name="author" content="Jonah Carpenter">
-    <title>Reset Password</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="/Project/Project\styles.css">
     <style>
         /* Style Definitions */
         body {
@@ -20,7 +20,7 @@
         }
 
         header {
-            background-color: #001e65; /* Navy blue */
+            background-color: #001e65;
             color: white;
             padding: 10px 20px;
             display: flex;
@@ -34,7 +34,7 @@
         }
 
         #home-btn {
-            background-color: red; /* Red Home button */
+            background-color: red;
             color: white;
             border: none;
             padding: 8px 12px;
@@ -50,7 +50,7 @@
             background-color: darkred;
         }
 
-        #reset-password {
+        #admin-login {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
@@ -60,7 +60,7 @@
             background-color: #333; /* Gray background for the area behind the form */
         }
 
-        .reset-wrapper {
+        .login-wrapper {
             width: 100%;
             max-width: 400px;
             background-color: white; /* White background for the form */
@@ -72,15 +72,15 @@
             text-align: center;
         }
 
-        /* Move the h2 inside the reset-wrapper for consistent styling */
-        .reset-wrapper h2 {
+        /* Move the h2 inside the login-wrapper for consistent styling */
+        .login-wrapper h2 {
             font-size: 22px;
             color: #333;
             margin-top: 0;
             margin-bottom: 20px;
         }
 
-        #reset-password-form label {
+        #login-form label {
             margin: 8px 0 5px;
             color: #333;
             font-weight: bold;
@@ -88,8 +88,8 @@
             display: block;
         }
 
-        #reset-password-form input {
-            width: calc(100% - 10px); /* Slight padding adjustment */
+        #login-form input {
+            width: calc(100% - 10px); /* Less padding inside form elements */
             padding: 8px;
             margin-bottom: 12px;
             border: 1px solid #ccc;
@@ -99,10 +99,10 @@
             box-sizing: border-box;
         }
 
-        #reset-password-form button {
+        #login-form button {
             width: 100%;
             padding: 10px;
-            background-color: #001e65; /* Navy blue button */
+            background-color: #001e65;
             color: white;
             border: none;
             border-radius: 5px;
@@ -110,43 +110,38 @@
             cursor: pointer;
         }
 
-        #reset-password-form button:hover {
+        #login-form button:hover {
             background-color: darkblue;
         }
 
         footer {
             text-align: center;
-            background-color: #001e65; /* Navy blue */
+            background-color: #001e65;
             color: white;
             padding: 10px 0;
-            position: absolute;
-            bottom: 0;
-            width: 100%;
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Reset Password</h1>
+    <h1>Admin Login</h1>
     <button id="home-btn">Home</button>
 </header>
 
-<section id="reset-password">
-    <div class="reset-wrapper">
-        <h2>Reset Your Password</h2>
-        <form id="reset-password-form" action="reset_password.php" method="POST">
-            <label for="login">Login:</label>
-            <input type="text" id="login" name="login" required>
+<section id="admin-login">
+    <div class="login-wrapper">
+        <h2>Please Log In</h2>
+        <form id="login-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username" required>
             
-            <label for="password">Current Password:</label>
-            <input type="password" id="password" name="password" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
 
-            <label for="new-password">New Password:</label>
-            <input type="password" id="new-password" name="new-password" required>
-
-            <button type="submit">Reset Password</button>
+            <button type="submit">Login</button>
         </form>
+        <p id="login-error" style="color: red; display: none;"></p>
     </div>
 </section>
 
@@ -154,9 +149,10 @@
     <p>&copy; 2024 Turing Ticket System</p>
 </footer>
 
+<script src="/Project/js/Project\js\login.js"></script>
 <script>
     document.getElementById('home-btn').addEventListener('click', function() {
-        window.location.href = 'default.html';
+        window.location.href = 'Project\index.html';
     });
 </script>
 

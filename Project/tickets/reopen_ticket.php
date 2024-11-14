@@ -1,5 +1,5 @@
 <?php
-require_once 'database.php';
+require_once 'config/Project\config\database.php';
 session_start();
 
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
