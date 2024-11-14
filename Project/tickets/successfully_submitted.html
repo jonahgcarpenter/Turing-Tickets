@@ -100,18 +100,7 @@
     <p>&copy; 2024 Turing Ticket System</p>
 </footer>
 
-<script>
-    // Retrieve the ticket_id from the URL query parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const ticketId = urlParams.get('ticket_id');
-    
-    // Display the ticket ID in the HTML
-    if (ticketId) {
-        document.getElementById('ticket-id').textContent = ticketId;
-    } else {
-        document.getElementById('ticket-id').textContent = 'N/A'; // Default message if ticket ID is missing
-    }
-</script>
+<script src="../js/script.js"></script>
 
 </body>
 </html>

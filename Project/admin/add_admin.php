@@ -243,13 +243,7 @@ $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
     &copy; 2024 Turing Ticket System
 </footer>
 
-<script>
-    function confirmDelete(adminId) {
-        if (confirm('Are you sure you want to delete this admin?')) {
-            window.location.href = 'delete_user.php?id=' + adminId;
-        }
-    }
-</script>
+<script src="../js/script.js"></script>
 
 </body>
 </html>
