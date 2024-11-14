@@ -1,5 +1,5 @@
 <?php
-require_once('config/Project\config\database.php');
+require_once('database.php');
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $name = $_POST['name'];
@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($stmt->execute()) {
             $ticket_id = $pdo->lastInsertId();
-            header("Location: Project\successfully_submitted.html?ticket_id=" . $ticket_id);
+            header("Location: successfully_submitted.html?ticket_id=" . $ticket_id);
             exit;
         }
     } catch (Exception $e) {

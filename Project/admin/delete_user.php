@@ -1,5 +1,5 @@
 <?php
-require_once 'config/Project\config\database.php';
+require_once 'database.php';
 
 if (isset($_GET['id'])) {
     $adminId = $_GET['id'];
@@ -9,7 +9,7 @@ if (isset($_GET['id'])) {
     $stmt->bindParam(':id', $adminId);
 
     if ($stmt->execute()) {
-        header('Location: /Project/admin//Project/admin//Project/admin//Project/admin/Project\admin\add_admin.php');
+        header('Location: add_admin.php');
         exit;
     } else {
         echo "Error deleting admin.";

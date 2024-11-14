@@ -1,8 +1,8 @@
 <?php
-require_once 'config/Project\config\database.php';
+require_once 'database.php';
 session_start();
 
-if (!isset($_SESSION['admin/admin_logged_in']) || $_SESSION['admin/admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     echo json_encode(['success' => false, 'message' => 'Not authenticated']);
     exit;
 }

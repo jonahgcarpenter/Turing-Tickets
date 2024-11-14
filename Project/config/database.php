@@ -5,7 +5,7 @@ class Database {
     public static function dbConnect() {
         $pdo = null;
         try {
-            require_once('Project\config\connect.php');
+            require_once('connect.php');
             $pdo = new PDO('mysql:host='.$servername.';dbname='.$db, $username, $password);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {

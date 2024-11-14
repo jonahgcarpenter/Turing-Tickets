@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (user && user.role === 'admin') {
         submitTicketSection.style.display = 'none';
-        fetch('tickets/get_tickets.php')
+        fetch('get_tickets.php')
             .then(response => response.json())
             .then(data => {
                 data.tickets.forEach(ticket => {
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const formData = new FormData(ticketForm);
 
-            fetch('tickets/Project\tickets\submit_ticket.php', {
+            fetch('submit_ticket.php', {
                 method: 'POST',
                 body: formData
             })
@@ -47,14 +47,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (adminLoginBtn) {
         adminLoginBtn.addEventListener('click', function() {
-            window.location.href = 'auth/login.html';
+            window.location.href = 'login.html';
         });
     }
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
             sessionStorage.removeItem('loggedInUser');
-            window.location.href = 'auth/login.html';
+            window.location.href = 'login.html';
         });
     }
 });

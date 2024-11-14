@@ -1,5 +1,5 @@
 <?php
-require_once 'config/Project\config\database.php';
+require_once 'database.php';
 session_start();
 
 // Check if the admin is logged in
