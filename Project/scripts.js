@@ -341,13 +341,41 @@ function addRow(ticketData) {
             <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'} <br>
             <strong>Status:</strong> ${ticketData.status} <br>
             <strong>Last Updated:</strong> ${formatDateTime(ticketData.updated)} <br>
-            <strong>Notes:</strong> <ul>
+            <strong>Notes:</strong>
+            <ul>
                 ${ticketData.notes.map(note => `<li>${note.content} (Created: ${formatDateTime(note.created_at)})</li>`).join('')}
             </ul>
+            <div style="margin-top: 1em;">
+                <label for="status-update-${ticketData.id}"><strong>Update Status:</strong></label>
+                <select id="status-update-${ticketData.id}">
+                    <option value="open">Open</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="awaiting-response">Awaiting Response</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+            <div style="margin-top: 1em;">
+                <label for="add-response-${ticketData.id}"><strong>Add Response:</strong></label><br>
+                <textarea id="add-response-${ticketData.id}" rows="3" style="width: 100%;"></textarea>
+            </div>
+            <button id="save-changes-${ticketData.id}" style="margin-top: 1em;">Save Changes</button>
         </td>
     `;
     expandableRow.style.display = "none"; // Hide initially
 
+    // Add event listener for the save changes button
+    expandableRow.addEventListener("click", (event) => {
+        if (event.target && event.target.id === `save-changes-${ticketData.id}`) {
+            const updatedStatus = document.getElementById(`status-update-${ticketData.id}`).value;
+            const newResponse = document.getElementById(`add-response-${ticketData.id}`).value;
+
+            console.log(`Ticket ID: ${ticketData.id}`);
+            console.log(`Updated Status: ${updatedStatus}`);
+            console.log(`New Response: ${newResponse}`);
+
+            // Add logic to handle updated status and response submission here
+        }
+    });
 
     // Append both rows to the table body
     ticketTableBody.appendChild(mainRow);
