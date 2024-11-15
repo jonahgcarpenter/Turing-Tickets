@@ -160,7 +160,7 @@ footer {
 
 /* ---------- Tickets Container ---------- */
 #admin-dashboard-container {
-  max-width: 75%;
+  max-width: 80%;
   margin: 20px auto;
   padding: 20px;
   background-color: var(--accent-color);
@@ -182,6 +182,7 @@ footer {
 #dashboard-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 #dashboard-table th, #dashboard-table td {

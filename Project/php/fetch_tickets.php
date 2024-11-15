@@ -3,19 +3,20 @@ require_once('../config/database.php');
 
 header('Content-Type: application/json');
 
-// Log errors to a file
+// Log errors to the console
 function logError($message) {
-    error_log($message, 3, '/path/to/logs/sql_errors.log');
+    error_log("PHP SQL Error: $message", 0);
 }
 
 try {
     $pdo = Database::dbConnect();
     $tickets = [];
 
-    // Define queries
+    // Define main ticket queries
     $baseQueryOpen = "SELECT id, category AS request_type, title AS request_title, status, created_at AS updated FROM tickets WHERE status IN ('open', 'in-progress', 'awaiting response')";
     $baseQueryClosed = "SELECT id, category AS request_type, title AS request_title, status, created_at AS updated FROM closed_tickets WHERE status = 'closed'";
 
+    // Filters and sorting
     $params = [];
     $search = isset($_GET['ticket_id']) ? trim($_GET['ticket_id']) : '';
     $statusFilter = isset($_GET['status']) ? $_GET['status'] : '';
@@ -44,7 +45,7 @@ try {
         $baseQueryClosed .= " ORDER BY created_at DESC";
     }
 
-    // Prepare and execute the open tickets query with error handling
+    // Execute queries for open and closed tickets
     try {
         $stmtOpen = $pdo->prepare($baseQueryOpen);
         $stmtOpen->execute($params);
@@ -54,7 +55,6 @@ try {
         exit;
     }
 
-    // Prepare and execute the closed tickets query with error handling
     try {
         $stmtClosed = $pdo->prepare($baseQueryClosed);
         $stmtClosed->execute($params);
@@ -64,20 +64,20 @@ try {
         exit;
     }
 
-    // Function to fetch notes with error handling
+    // Updated fetchNotes function to fetch responses based on ticket type
     function fetchNotes($pdo, $ticketId, $isClosed = false) {
-        $tableName = $isClosed ? 'closed_notes' : 'notes';
+        $tableName = $isClosed ? 'closed_responses' : 'responses';
         try {
-            $stmt = $pdo->prepare("SELECT content, created_at FROM $tableName WHERE ticket_id = :ticket_id ORDER BY created_at DESC");
+            $stmt = $pdo->prepare("SELECT response AS content, created_at FROM $tableName WHERE ticket_id = :ticket_id ORDER BY created_at DESC");
             $stmt->execute([':ticket_id' => $ticketId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            logError("Error fetching notes for ticket $ticketId from $tableName: " . $e->getMessage());
+            logError("Error fetching responses for ticket $ticketId from $tableName: " . $e->getMessage());
             return [];
         }
     }
 
-    // Fetch tickets and include notes with error logging
+    // Fetch tickets and include responses with error logging
     foreach ($stmtOpen as $row) {
         $tickets[] = [
             'id' => $row['id'],
@@ -85,7 +85,7 @@ try {
             'request_title' => $row['request_title'],
             'status' => $row['status'],
             'updated' => $row['updated'],
-            'notes' => fetchNotes($pdo, $row['id'])
+            'notes' => fetchNotes($pdo, $row['id']) // Fetch responses from 'responses' table for open tickets
         ];
     }
 
@@ -96,7 +96,7 @@ try {
             'request_title' => $row['request_title'],
             'status' => $row['status'],
             'updated' => $row['updated'],
-            'notes' => fetchNotes($pdo, $row['id'], true)
+            'notes' => fetchNotes($pdo, $row['id'], true) // Fetch responses from 'closed_responses' table for closed tickets
         ];
     }
 

@@ -300,7 +300,7 @@ async function populateTicketTable() {
 function addRow(ticketData) {
     const ticketTableBody = document.getElementById("ticketTableBody");
 
-    // Create main row for ticket data
+    // Create the main row for ticket data
     const mainRow = document.createElement("tr");
     mainRow.classList.add("main-row");
     mainRow.innerHTML = `
@@ -308,7 +308,7 @@ function addRow(ticketData) {
         <td>${formatDateTime(ticketData.updated)}</td>
         <td>${ticketData.request_type || 'N/A'}</td>
         <td>${ticketData.request_title || 'N/A'}</td>
-        <td>${ticketData.latest_notes || 'New'}</td>
+        <td>${ticketData.notes && ticketData.notes.length > 0 ? ticketData.notes[0].content : 'No responses'}</td>
         <td>${ticketData.status}</td>
     `;
 
