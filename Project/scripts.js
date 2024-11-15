@@ -340,7 +340,7 @@ function addRow(ticketData) {
             <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'} <br>
             <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'} <br>
             <strong>Status:</strong> ${ticketData.status} <br>
-            <strong>Last Updated:</strong> ${formatDateTime(ticketData.updated)} <br>
+            <strong>Created:</strong> ${formatDateTime(ticketData.updated)} <br>
             <strong>Notes:</strong>
             <ul>
                 ${ticketData.notes.map(note => `<li>${note.content} (Created: ${formatDateTime(note.created_at)})</li>`).join('')}
