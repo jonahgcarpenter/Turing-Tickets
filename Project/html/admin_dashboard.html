@@ -58,7 +58,14 @@
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody id="tickets-container"></tbody>
+            <tbody id="ticketTableBody">
+                <tr onclick="toggleExpand(this)">
+                    <td>1</td><td>...</td> <!-- Main ticket row -->
+                </tr>
+                <tr class="expandable-row"> <!-- Expandable content row, initially hidden -->
+                    <td colspan="6">Expanded content here...</td>
+                </tr>
+            </tbody>            
         </table>
     </div>
 
@@ -67,6 +74,8 @@
 <footer>
     © 2024 Turing Tickets. All rights reserved.
 </footer>
+
+<script src="../scripts.js"></script>  
 
 </body>
 </html>

@@ -235,3 +235,12 @@ footer {
 .delete-btn:hover {
   background-color: darkred; /* Darker shade on hover */
 }
+
+.expandable-row {
+  display: none; /* Hide by default */
+}
+
+.expandable-row.expanded {
+  display: table-row; /* Show when expanded */
+}
+

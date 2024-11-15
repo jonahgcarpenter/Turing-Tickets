@@ -242,3 +242,112 @@ if (resetPasswordForm) {
         }
     }
 }
+
+// Ticket Table Fetch
+document.addEventListener("DOMContentLoaded", () => {
+    // Attach event listeners to filter and sort options
+    document.getElementById("search-button").addEventListener("click", populateTicketTable);
+    document.getElementById("sort-tickets").addEventListener("change", populateTicketTable);
+    document.getElementById("filter-status").addEventListener("change", populateTicketTable);
+
+    // Initial population of the ticket table
+    populateTicketTable();
+});
+
+async function populateTicketTable() {
+    try {
+        // Get filter, sort, and search input values
+        const searchInput = document.getElementById("search-ticket").value.trim();
+        const sortOption = document.getElementById("sort-tickets").value;
+        const filterOption = document.getElementById("filter-status").value;
+
+        // Construct URL with query parameters for filtering and sorting if supported by the backend
+        let url = `../php/fetch_tickets.php?`;
+        if (filterOption) url += `status=${filterOption}&`;
+        if (sortOption) url += `sort=${sortOption}&`;
+        if (searchInput) url += `ticket_id=${searchInput}`;
+
+        // Fetch ticket data from the backend
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.error) {
+            const ticketTableBody = document.getElementById('ticketTableBody');
+            ticketTableBody.innerHTML = ''; // Clear existing rows
+
+            // Apply filter and sorting on the client side if not handled on the backend
+            const filteredTickets = data
+                .filter(ticket => filterOption === '' || ticket.status === filterOption)
+                .filter(ticket => searchInput === '' || ticket.id.toString().includes(searchInput))
+                .sort((a, b) => {
+                    if (sortOption === 'status') return a.status.localeCompare(b.status);
+                    if (sortOption === 'updated-asc') return new Date(a.updated) - new Date(b.updated);
+                    if (sortOption === 'updated-desc') return new Date(b.updated) - new Date(a.updated);
+                    return 0;
+                });
+
+            // Populate the table with filtered and sorted tickets
+            filteredTickets.forEach(addRow);
+        } else {
+            console.error('Failed to fetch tickets:', data.error);
+        }
+    } catch (error) {
+        console.error('Error fetching tickets:', error);
+    }
+}
+
+// Function to add rows dynamically with expand-on-click functionality
+function addRow(ticketData) {
+    const ticketTableBody = document.getElementById("ticketTableBody");
+
+    // Create main row for ticket data
+    const mainRow = document.createElement("tr");
+    mainRow.classList.add("main-row");
+    mainRow.innerHTML = `
+        <td>${ticketData.id}</td>
+        <td>${formatDateTime(ticketData.updated)}</td>
+        <td>${ticketData.request_type || 'N/A'}</td>
+        <td>${ticketData.request_title || 'N/A'}</td>
+        <td>${ticketData.latest_notes || 'N/A'}</td>
+        <td>${ticketData.status}</td>
+    `;
+
+    // Add click event to toggle expansion of the associated row
+    mainRow.addEventListener("click", () => toggleExpand(mainRow));
+
+    // Create expandable row for additional details
+    const expandableRow = document.createElement("tr");
+    expandableRow.classList.add("expandable-row");
+    expandableRow.innerHTML = `
+        <td colspan="6">Additional details for ticket ${ticketData.id}</td>
+    `;
+    expandableRow.style.display = "none"; // Hide initially
+
+    // Append both rows to the table body
+    ticketTableBody.appendChild(mainRow);
+    ticketTableBody.appendChild(expandableRow);
+}
+
+// Function to toggle row expansion
+function toggleExpand(row) {
+    console.log("Toggling expand for row:", row);
+    const expandableRow = row.nextElementSibling;
+
+    if (expandableRow && expandableRow.classList.contains("expandable-row")) {
+        expandableRow.classList.toggle("expanded");
+        expandableRow.style.display = expandableRow.style.display === "none" ? "table-row" : "none";
+        console.log("Row toggled:", expandableRow);
+    } else {
+        console.error("Expandable row not found or incorrect structure:", row);
+    }
+}
+
+// Utility function to format date and time
+function formatDateTime(dateTimeStr) {
+    const dateObj = new Date(dateTimeStr);
+    if (isNaN(dateObj.getTime())) return 'Invalid Date';
+    const hours = dateObj.getHours() % 12 || 12;
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+    const ampm = dateObj.getHours() >= 12 ? 'PM' : 'AM';
+    return `${hours}:${minutes} ${ampm} ${dateObj.getMonth() + 1}/${dateObj.getDate()}/${dateObj.getFullYear()}`;
+}
