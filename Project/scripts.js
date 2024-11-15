@@ -243,12 +243,19 @@ if (resetPasswordForm) {
     }
 }
 
+// Ticket Table
+const BASE_API_URL = "../php/fetch_tickets.php"; // Define the base API endpoint
+
 // Ticket Table Fetch
 document.addEventListener("DOMContentLoaded", () => {
     // Attach event listeners to filter and sort options
-    document.getElementById("search-button").addEventListener("click", populateTicketTable);
-    document.getElementById("sort-tickets").addEventListener("change", populateTicketTable);
-    document.getElementById("filter-status").addEventListener("change", populateTicketTable);
+    const searchButton = document.getElementById("search-button");
+    const sortSelect = document.getElementById("sort-tickets");
+    const filterSelect = document.getElementById("filter-status");
+
+    if (searchButton) searchButton.addEventListener("click", populateTicketTable);
+    if (sortSelect) sortSelect.addEventListener("change", populateTicketTable);
+    if (filterSelect) filterSelect.addEventListener("change", populateTicketTable);
 
     // Initial population of the ticket table
     populateTicketTable();
@@ -261,38 +268,41 @@ async function populateTicketTable() {
         const sortOption = document.getElementById("sort-tickets").value;
         const filterOption = document.getElementById("filter-status").value;
 
-        // Construct URL with query parameters for filtering and sorting if supported by the backend
-        let url = `../php/fetch_tickets.php?`;
-        if (filterOption) url += `status=${filterOption}&`;
-        if (sortOption) url += `sort=${sortOption}&`;
-        if (searchInput) url += `ticket_id=${searchInput}`;
+        // Construct query parameters dynamically
+        const params = new URLSearchParams();
+
+        // Add filterOption only if it's not "all"
+        if (filterOption && filterOption !== "all") {
+            params.append("filterOption", filterOption); // Automatically encodes filterOption
+        }
+
+        if (sortOption) {
+            params.append("sort", sortOption);
+        }
+
+        if (searchInput) {
+            params.append("ticket_id", searchInput);
+        }
+
+        // Build the full URL with query parameters
+        const url = `${BASE_API_URL}?${params.toString()}`;
+        console.log("Constructed URL:", url);
 
         // Fetch ticket data from the backend
         const response = await fetch(url);
         const data = await response.json();
 
         if (!data.error) {
-            const ticketTableBody = document.getElementById('ticketTableBody');
-            ticketTableBody.innerHTML = ''; // Clear existing rows
+            const ticketTableBody = document.getElementById("ticketTableBody");
+            ticketTableBody.innerHTML = ""; // Clear existing rows
 
-            // Apply filter and sorting on the client side if not handled on the backend
-            const filteredTickets = data
-                .filter(ticket => filterOption === '' || ticket.status === filterOption)
-                .filter(ticket => searchInput === '' || ticket.id.toString().includes(searchInput))
-                .sort((a, b) => {
-                    if (sortOption === 'status') return a.status.localeCompare(b.status);
-                    if (sortOption === 'updated-asc') return new Date(a.updated) - new Date(b.updated);
-                    if (sortOption === 'updated-desc') return new Date(b.updated) - new Date(a.updated);
-                    return 0;
-                });
-
-            // Populate the table with filtered and sorted tickets
-            filteredTickets.forEach(addRow);
+            // Populate the table with filtered and sorted tickets directly from the backend
+            data.forEach(addRow);
         } else {
-            console.error('Failed to fetch tickets:', data.error);
+            console.error("Failed to fetch tickets:", data.error);
         }
     } catch (error) {
-        console.error('Error fetching tickets:', error);
+        console.error("Error fetching tickets:", error);
     }
 }
 
