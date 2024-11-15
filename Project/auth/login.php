@@ -1,8 +1,5 @@
 <?php
 require_once('../config/database.php');
-session_start();
-
-header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
@@ -16,29 +13,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
+            // Start the session and set session variables on successful login only
+            session_start();
             $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
 
-            echo json_encode([
-                'success' => true,
-                'user' => [
-                    'id' => $user['id'],
-                    'username' => $user['username'],
-                    'role' => $user['role']
-                ]
-            ]);
+            // Output success alert with redirect to admin dashboard
+            echo "<script>
+                alert('Login successful!');
+                window.location.href = '../html/admin_dashboard.html';
+            </script>";
         } else {
-            echo json_encode([
-                'success' => false,
-                'error' => 'Invalid username or password.'
-            ]);
+            // Output error alert with redirect back to login page
+            echo "<script>
+                alert('Invalid username or password.');
+                window.location.href = '../html/admin_login.html';
+            </script>";
         }
     } catch (Exception $e) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'Error logging in: ' . $e->getMessage()
-        ]);
+        // Output error alert with redirect back to login page in case of exception
+        echo "<script>
+            alert('Error logging in: " . addslashes($e->getMessage()) . "');
+            window.location.href = '../html/admin_login.html';
+        </script>";
     }
 
     Database::dbDisconnect();

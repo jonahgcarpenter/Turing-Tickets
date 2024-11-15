@@ -1,46 +1,46 @@
 <?php
 require_once('../config/database.php');
-session_start();
 
-$pdo = Database::dbConnect();
+header('Content-Type: application/json');
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $login = $_POST['login'];
-    $current_password = $_POST['password'];
-    $new_password = $_POST['new-password'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? null;
+    $password = $_POST['password'] ?? null;
+    $new_password = $_POST['new_password'] ?? null;
 
-    $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
+    // Validate input fields
+    if (!$username || !$password || !$new_password) {
+        echo json_encode(['success' => false, 'error' => 'All fields are required.']);
+        exit();
+    }
 
     try {
-        $query = "SELECT * FROM users WHERE username = :username";
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':username', $login);
-        $stmt->execute();
+        $pdo = Database::dbConnect();
+        
+        // Verify the current username and password
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt->execute([':username' => $username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user) {
-            if (password_verify($current_password, $user['password'])) {
-                $update_query = "UPDATE users SET password = :new_password WHERE username = :username";
-                $update_stmt = $pdo->prepare($update_query);
-                $update_stmt->bindParam(':new_password', $hashed_new_password);
-                $update_stmt->bindParam(':username', $login);
+        if ($user && password_verify($password, $user['password'])) {
+            // Hash the new password
+            $hashedNewPassword = password_hash($new_password, PASSWORD_DEFAULT);
+            
+            // Update the password in the database
+            $updateStmt = $pdo->prepare("UPDATE users SET password = :new_password WHERE username = :username");
+            $updateStmt->execute([
+                ':new_password' => $hashedNewPassword,
+                ':username' => $username
+            ]);
 
-                if ($update_stmt->execute()) {
-                    header('Location: ../admin/admin_login.html');
-                    exit();
-                } else {
-                    echo "Error updating password.";
-                }
-            } else {
-                echo "Current password is incorrect.";
-            }
+            echo json_encode(['success' => true, 'message' => 'Password reset successfully.']);
         } else {
-            echo "User not found.";
+            echo json_encode(['success' => false, 'error' => 'Invalid username or password.']);
         }
-    } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => 'Error resetting password: ' . $e->getMessage()]);
     }
-}
 
-Database::dbDisconnect();
+    Database::dbDisconnect();
+}
 ?>

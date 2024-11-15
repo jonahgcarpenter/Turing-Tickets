@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div class="container">
+    <div style="display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 20px;">
+        <!-- Back Button -->
+        <button onclick="window.location.href='../../index.html'" style="position: absolute; left: 0; width: 15%;">&#8592;</button>
+        <h1 style="margin: 0;">Admin Login</h1>
+    </div>   
+    
+    <form action="../auth/login.php" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <!-- Button container to keep buttons inline -->
+        <div style="display: inline-flex; gap: 10px;">
+            <button type="submit">Login</button>
+            <button type="button" onclick="window.location.href='reset_password.html'">Reset Password</button>
+        </div>
+    </form>
+</div>
+
+<footer>
+    © 2024 Turing Tickets. All rights reserved.
+</footer>
+
+</body>
+</html>

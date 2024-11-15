@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div id="admin-dashboard-container" class="container">
+    <h1>Admin Dashboard</h1>
+
+    <!-- Button Container -->
+    <div class="button-container">
+        <!-- Logout Button -->
+        <button onclick="window.location.href='../auth/logout.php'" class="dash-button">Logout</button>
+
+        <!-- Add Admin Button -->
+        <button onclick="window.location.href='add_admin.html'" class="dash-button">Add Admin</button>
+    </div>
+
+
+    <!-- Dashboard Table -->
+    <div id="controls-wrapper">
+        <label for="search-ticket">Search by Ticket Number:</label>
+        <input type="text" id="search-ticket" class="control-input" placeholder="Enter ticket number">
+        <button id="search-button" onclick="searchTicket()">Search</button>
+        
+        <div id="admin-dropdowns">        
+            <label for="sort-tickets">Sort by:</label>
+            <select id="sort-tickets" class="control-select">
+                <option value="status" selected>Status</option>
+                <option value="updated-asc">Oldest First</option>
+                <option value="updated-desc">Newest First</option>
+            </select>
+        
+            <label for="filter-status">Filter by Status:</label>
+            <select id="filter-status" class="control-select">
+                <option value="">All</option>
+                <option value="open">Open</option>
+                <option value="in-progress">In Progress</option>
+                <option value="awaiting-response">Awaiting Response</option>
+                <option value="closed">Closed</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="table-wrapper">
+        <table id="dashboard-table">
+            <thead>
+                <tr>
+                    <th class="ticket-number">No.</th>
+                    <th>Updated</th>
+                    <th>Request Type</th>
+                    <th>Request Title</th>
+                    <th>Latest Notes</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="tickets-container"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<footer>
+    © 2024 Turing Tickets. All rights reserved.
+</footer>
+
+</body>
+</html>
