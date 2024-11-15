@@ -303,12 +303,18 @@ function addRow(ticketData) {
     // Create the main row for ticket data
     const mainRow = document.createElement("tr");
     mainRow.classList.add("main-row");
+    
+    // Limit the note content to 10 characters
+    const truncatedContent = ticketData.notes && ticketData.notes.length > 0
+        ? ticketData.notes[0].content.slice(0, 10) // Show only the first 10 characters
+        : 'No Responses';
+
     mainRow.innerHTML = `
         <td>${ticketData.id}</td>
         <td>${formatDateTime(ticketData.updated)}</td>
         <td>${ticketData.request_type || 'N/A'}</td>
         <td>${ticketData.request_title || 'N/A'}</td>
-        <td>${ticketData.notes && ticketData.notes.length > 0 ? ticketData.notes[0].content : 'No responses'}</td>
+        <td>${truncatedContent}</td>
         <td>${ticketData.status}</td>
     `;
 
