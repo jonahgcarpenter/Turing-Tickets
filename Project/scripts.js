@@ -308,20 +308,30 @@ function addRow(ticketData) {
         <td>${formatDateTime(ticketData.updated)}</td>
         <td>${ticketData.request_type || 'N/A'}</td>
         <td>${ticketData.request_title || 'N/A'}</td>
-        <td>${ticketData.latest_notes || 'N/A'}</td>
+        <td>${ticketData.latest_notes || 'New'}</td>
         <td>${ticketData.status}</td>
     `;
 
     // Add click event to toggle expansion of the associated row
     mainRow.addEventListener("click", () => toggleExpand(mainRow));
 
-    // Create expandable row for additional details
+    // Create expandable row for additional details from both ticket tables
     const expandableRow = document.createElement("tr");
     expandableRow.classList.add("expandable-row");
     expandableRow.innerHTML = `
-        <td colspan="6">Additional details for ticket ${ticketData.id}</td>
+        <td colspan="6">
+            <strong>Ticket ID:</strong> ${ticketData.id} <br>
+            <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'} <br>
+            <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'} <br>
+            <strong>Status:</strong> ${ticketData.status} <br>
+            <strong>Last Updated:</strong> ${formatDateTime(ticketData.updated)} <br>
+            <strong>Notes:</strong> <ul>
+                ${ticketData.notes.map(note => `<li>${note.content} (Created: ${formatDateTime(note.created_at)})</li>`).join('')}
+            </ul>
+        </td>
     `;
     expandableRow.style.display = "none"; // Hide initially
+
 
     // Append both rows to the table body
     ticketTableBody.appendChild(mainRow);
