@@ -30,71 +30,71 @@ if (!in_array($status, $valid_statuses)) {
 }
 
 try {
-    if ($status === 'closed') {
-        // Move the ticket to the closed_tickets table
-        $pdo->beginTransaction();
+  if ($status === 'closed') {
+      // Move the ticket and responses to the closed tables
+      $pdo->beginTransaction();
 
-        // Insert ticket into closed_tickets with specific columns
-        $stmt = $pdo->prepare("INSERT INTO closed_tickets (id, title, name, email, category, description, status, closed_date, created_at, updated_at)
-                               SELECT id, title, name, email, category, description, 'closed', NOW(), created_at, updated_at FROM tickets WHERE id = ?");
-        $stmt->execute([$ticket_id]);
+      // Move the ticket to closed_tickets with specific columns first
+      $stmt = $pdo->prepare("INSERT INTO closed_tickets (id, title, name, email, category, description, status, closed_date, created_at, updated_at)
+                             SELECT id, title, name, email, category, description, 'closed', NOW(), created_at, updated_at FROM tickets WHERE id = ?");
+      $stmt->execute([$ticket_id]);
 
-        // Delete the ticket from the tickets table
-        $stmt = $pdo->prepare("DELETE FROM tickets WHERE id = ?");
-        $stmt->execute([$ticket_id]);
+      // Move associated responses to closed_responses
+      $stmt = $pdo->prepare("INSERT INTO closed_responses (id, ticket_id, admin_id, response, created_at)
+                             SELECT id, ticket_id, admin_id, response, created_at FROM responses WHERE ticket_id = ?");
+      $stmt->execute([$ticket_id]);
 
-        // Move responses to closed_responses with specific columns
-        $stmt = $pdo->prepare("INSERT INTO closed_responses (id, ticket_id, admin_id, response, created_at)
-                               SELECT id, ticket_id, admin_id, response, created_at FROM responses WHERE ticket_id = ?");
-        $stmt->execute([$ticket_id]);
+      // Now delete responses from the responses table
+      $stmt = $pdo->prepare("DELETE FROM responses WHERE ticket_id = ?");
+      $stmt->execute([$ticket_id]);
 
-        // Delete responses from the responses table
-        $stmt = $pdo->prepare("DELETE FROM responses WHERE ticket_id = ?");
-        $stmt->execute([$ticket_id]);
+      // Finally, delete the ticket from the tickets table
+      $stmt = $pdo->prepare("DELETE FROM tickets WHERE id = ?");
+      $stmt->execute([$ticket_id]);
 
-        $pdo->commit();
-        echo json_encode(['success' => true, 'message' => 'Ticket closed and moved to closed_tickets.']);
-    } else {
-        // Check if the ticket is currently in the closed_tickets table
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM closed_tickets WHERE id = ?");
-        $stmt->execute([$ticket_id]);
-        $is_closed_ticket = $stmt->fetchColumn() > 0;
+      $pdo->commit();
+      echo json_encode(['success' => true, 'message' => 'Ticket closed and moved to closed_tickets with associated responses.']);
+  } else {
+      // Check if the ticket is currently in the closed_tickets table
+      $stmt = $pdo->prepare("SELECT COUNT(*) FROM closed_tickets WHERE id = ?");
+      $stmt->execute([$ticket_id]);
+      $is_closed_ticket = $stmt->fetchColumn() > 0;
 
-        if ($is_closed_ticket) {
-            // Move the ticket from closed_tickets back to tickets with the new status
-            $pdo->beginTransaction();
+      if ($is_closed_ticket) {
+          // Move the ticket and responses back to open tables
+          $pdo->beginTransaction();
 
-            // Insert ticket into tickets table with updated status
-            $stmt = $pdo->prepare("INSERT INTO tickets (id, title, name, email, category, description, status, created_at, updated_at)
-                                   SELECT id, title, name, email, category, description, ?, created_at, updated_at FROM closed_tickets WHERE id = ?");
-            $stmt->execute([$status, $ticket_id]);
+          // Insert the ticket back into tickets with the new status first
+          $stmt = $pdo->prepare("INSERT INTO tickets (id, title, name, email, category, description, status, created_at, updated_at)
+                                 SELECT id, title, name, email, category, description, ?, created_at, updated_at FROM closed_tickets WHERE id = ?");
+          $stmt->execute([$status, $ticket_id]);
 
-            // Delete the ticket from closed_tickets
-            $stmt = $pdo->prepare("DELETE FROM closed_tickets WHERE id = ?");
-            $stmt->execute([$ticket_id]);
+          // Move associated responses back to responses
+          $stmt = $pdo->prepare("INSERT INTO responses (id, ticket_id, admin_id, response, created_at)
+                                 SELECT id, ticket_id, admin_id, response, created_at FROM closed_responses WHERE ticket_id = ?");
+          $stmt->execute([$ticket_id]);
 
-            // Move responses from closed_responses back to responses
-            $stmt = $pdo->prepare("INSERT INTO responses (id, ticket_id, admin_id, response, created_at)
-                                   SELECT id, ticket_id, admin_id, response, created_at FROM closed_responses WHERE ticket_id = ?");
-            $stmt->execute([$ticket_id]);
+          // Delete responses from closed_responses
+          $stmt = $pdo->prepare("DELETE FROM closed_responses WHERE ticket_id = ?");
+          $stmt->execute([$ticket_id]);
 
-            // Delete responses from closed_responses
-            $stmt = $pdo->prepare("DELETE FROM closed_responses WHERE ticket_id = ?");
-            $stmt->execute([$ticket_id]);
+          // Finally, delete the ticket from closed_tickets
+          $stmt = $pdo->prepare("DELETE FROM closed_tickets WHERE id = ?");
+          $stmt->execute([$ticket_id]);
 
-            $pdo->commit();
-            echo json_encode(['success' => true, 'message' => 'Ticket re-opened and moved to tickets table with updated status.']);
-        } else {
-            // Update the status in the tickets table for open, in-progress, and awaiting-response statuses
-            $stmt = $pdo->prepare("UPDATE tickets SET status = ? WHERE id = ?");
-            $stmt->execute([$status, $ticket_id]);
+          $pdo->commit();
+          echo json_encode(['success' => true, 'message' => 'Ticket re-opened and moved to tickets with associated responses.']);
+      } else {
+          // Update the status in the tickets table for open, in-progress, and awaiting-response statuses
+          $stmt = $pdo->prepare("UPDATE tickets SET status = ? WHERE id = ?");
+          $stmt->execute([$status, $ticket_id]);
 
-            echo json_encode(['success' => true, 'message' => 'Ticket status updated successfully.']);
-        }
-    }
+          echo json_encode(['success' => true, 'message' => 'Ticket status updated successfully.']);
+      }
+  }
 } catch (PDOException $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack(); // Roll back if there's any error
-    }
-    echo json_encode(['success' => false, 'message' => 'Failed to update ticket status: ' . $e->getMessage()]);
+  if ($pdo->inTransaction()) {
+      $pdo->rollBack(); // Roll back if there's any error
+  }
+  echo json_encode(['success' => false, 'message' => 'Failed to update ticket status: ' . $e->getMessage()]);
 }
