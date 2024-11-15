@@ -373,7 +373,53 @@ function addRow(ticketData) {
             console.log(`Updated Status: ${updatedStatus}`);
             console.log(`New Response: ${newResponse}`);
 
-            // Add logic to handle updated status and response submission here
+            // Make POST request to update_status.php
+            if (updatedStatus) {
+                fetch('../php/update_status.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ticket_id: ticketData.id,
+                        status: updatedStatus
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Status updated successfully:', data.message);
+                        // Optionally update the UI to reflect the new status
+                    } else {
+                        console.error('Failed to update status:', data.message);
+                    }
+                })
+                .catch(error => console.error('Error updating status:', error));
+            }
+
+            // Make POST request to add_response.php
+            if (newResponse.trim() !== "") {
+                fetch('../php/add_response.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ticket_id: ticketData.id,
+                        response: newResponse
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Response added successfully:', data.message);
+                        // Optionally update the UI to show the new response
+                    } else {
+                        console.error('Failed to add response:', data.message);
+                    }
+                })
+                .catch(error => console.error('Error adding response:', error));
+            }
         }
     });
 
