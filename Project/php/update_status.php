@@ -39,25 +39,56 @@ if (!in_array($status, $valid_statuses)) {
 
 try {
     $mailer = new MailHandler();
+    $pdo->beginTransaction();
     
-    // Get user email before any changes
-    $stmt = $pdo->prepare("SELECT email FROM tickets WHERE id = ? UNION SELECT email FROM closed_tickets WHERE id = ?");
+    // Get user email and current status before any changes
+    $stmt = $pdo->prepare("
+        SELECT email, status FROM tickets WHERE id = ? 
+        UNION 
+        SELECT email, status FROM closed_tickets WHERE id = ?
+    ");
     $stmt->execute([$ticket_id, $ticket_id]);
-    $userEmail = $stmt->fetchColumn();
+    $ticketData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$ticketData) {
+        throw new Exception('Ticket not found');
+    }
+
+    $userEmail = $ticketData['email'];
+    $currentStatus = $ticketData['status'];
+
+    // Only proceed with status update if the status has actually changed
+    if ($status === $currentStatus) {
+        $response['message'] = 'Status unchanged.';
+        echo json_encode($response);
+        exit;
+    }
 
     if ($status === 'closed') {
-        // Move the ticket and responses to the closed tables
-        $pdo->beginTransaction();
+        // Get full ticket data before moving to closed_tickets
+        $stmt = $pdo->prepare("SELECT * FROM tickets WHERE id = ?");
+        $stmt->execute([$ticket_id]);
+        $ticketData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$ticketData) {
+            throw new Exception('Ticket not found');
+        }
 
         // Move the ticket to closed_tickets with specific columns
         $stmt = $pdo->prepare("INSERT INTO closed_tickets (id, title, name, email, category, description, status, closed_date, created_at, updated_at)
-                               SELECT id, title, name, email, category, description, 'closed', NOW(), created_at, updated_at FROM tickets WHERE id = ?");
+                               SELECT id, title, name, email, category, description, 'closed', NOW(), created_at, NOW() FROM tickets WHERE id = ?");
         $stmt->execute([$ticket_id]);
 
         // Move associated responses to closed_responses
         $stmt = $pdo->prepare("INSERT INTO closed_responses (id, ticket_id, admin_id, response, created_at)
                                SELECT id, ticket_id, admin_id, response, created_at FROM responses WHERE ticket_id = ?");
         $stmt->execute([$ticket_id]);
+
+        // Get the closure date from closed_tickets
+        $stmt = $pdo->prepare("SELECT closed_date FROM closed_tickets WHERE id = ?");
+        $stmt->execute([$ticket_id]);
+        $closedDate = $stmt->fetchColumn();
+        $ticketData['closed_date'] = $closedDate;
 
         // Delete responses from the responses table
         $stmt = $pdo->prepare("DELETE FROM responses WHERE ticket_id = ?");
@@ -67,9 +98,16 @@ try {
         $stmt = $pdo->prepare("DELETE FROM tickets WHERE id = ?");
         $stmt->execute([$ticket_id]);
 
+        if ($currentStatus !== 'closed') {
+            $emailSent = $mailer->sendTicketClosureNotification($userEmail, $ticket_id, $ticketData);
+        }
+        
         $pdo->commit();
-        $response['messages'][] = 'Ticket closed and moved to closed_tickets with associated responses.';
-        $mailer->sendStatusChangeNotification($userEmail, $ticket_id, 'closed');
+        
+        $response['message'] = 'Ticket closed successfully.';
+        if (!$emailSent) {
+            $response['message'] .= ' Note: Status change email notification failed.';
+        }
     } else {
         // Check if the ticket is currently in the closed_tickets table
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM closed_tickets WHERE id = ?");
@@ -78,7 +116,6 @@ try {
 
         if ($is_closed_ticket) {
             // Move the ticket and responses back to open tables
-            $pdo->beginTransaction();
 
             // Insert the ticket back into tickets with the new status
             $stmt = $pdo->prepare("INSERT INTO tickets (id, title, name, email, category, description, status, created_at, updated_at)
@@ -107,14 +144,26 @@ try {
 
             $response['messages'][] = 'Ticket status updated successfully.';
         }
-        $mailer->sendStatusChangeNotification($userEmail, $ticket_id, $status);
+        
+        if ($status !== $currentStatus) {
+            $emailSent = $mailer->sendStatusChangeNotification($userEmail, $ticket_id, $status);
+        }
+        
+        if ($pdo->inTransaction()) {
+            $pdo->commit();
+        }
+        
+        $response['message'] = "Ticket status updated to '$status'.";
+        if (!$emailSent) {
+            $response['message'] .= ' Note: Status change email notification failed.';
+        }
     }
-} catch (PDOException $e) {
+} catch (Exception $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
     $response['success'] = false;
-    $response['messages'][] = 'Failed to update ticket status: ' . $e->getMessage();
+    $response['message'] = 'Error: ' . $e->getMessage();
 }
 
 echo json_encode($response);

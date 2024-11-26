@@ -399,23 +399,7 @@ function addRow(ticketData) {
             const updatedStatus = document.getElementById(`status-update-${ticketData.id}`).value;
             const newResponse = document.getElementById(`add-response-${ticketData.id}`).value;
 
-            console.log(`Ticket ID: ${ticketData.id}`);
-            console.log(`Updated Status: ${updatedStatus}`);
-            console.log(`New Response: ${newResponse}`);
-
-            // Flags to track completion of async operations
-            let statusUpdated = !updatedStatus; // Skip if no status to update
-            let responseAdded = newResponse.trim() === ""; // Skip if no response to add
-
-            // Function to check if both operations are complete and refresh the page
-            const checkAndRefresh = () => {
-                if (statusUpdated && responseAdded) {
-                    window.location.reload();
-                }
-            };
-
-            // Make POST request to update_status.php if updatedStatus is provided
-            if (updatedStatus) {
+            const statusPromise = updatedStatus ? 
                 fetch('../php/update_status.php', {
                     method: 'POST',
                     headers: {
@@ -425,29 +409,10 @@ function addRow(ticketData) {
                         ticket_id: ticketData.id,
                         status: updatedStatus
                     }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Status updated successfully!');
-                        console.log('Status updated successfully:', data.message);
-                    } else {
-                        alert(`Failed to update status: ${data.message}`);
-                        console.error('Failed to update status:', data.message);
-                    }
-                    statusUpdated = true;
-                    checkAndRefresh();
-                })
-                .catch(error => {
-                    alert('An error occurred while updating the status. Please try again.');
-                    console.error('Error updating status:', error);
-                    statusUpdated = true; // Allow refresh even on error
-                    checkAndRefresh();
-                });
-            }
+                }).then(response => response.json()) : 
+                Promise.resolve({ success: true });
 
-            // Make POST request to add_response.php if newResponse is provided
-            if (newResponse.trim() !== "") {
+            const responsePromise = newResponse.trim() ? 
                 fetch('../php/add_response.php', {
                     method: 'POST',
                     headers: {
@@ -457,26 +422,28 @@ function addRow(ticketData) {
                         ticket_id: ticketData.id,
                         response: newResponse
                     }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Response added successfully!');
-                        console.log('Response added successfully:', data.message);
+                }).then(response => response.json()) : 
+                Promise.resolve({ success: true });
+
+            Promise.all([statusPromise, responsePromise])
+                .then(([statusResult, responseResult]) => {
+                    let messages = [];
+                    if (statusResult.message) messages.push(statusResult.message);
+                    if (responseResult.message) messages.push(responseResult.message);
+                    
+                    if (statusResult.success && responseResult.success) {
+                        if (messages.length > 0) {
+                            alert(messages.join('\n'));
+                        }
+                        window.location.reload();
                     } else {
-                        alert(`Failed to add response: ${data.message}`);
-                        console.error('Failed to add response:', data.message);
+                        alert('Error: ' + messages.join('\n'));
                     }
-                    responseAdded = true;
-                    checkAndRefresh();
                 })
                 .catch(error => {
-                    alert('An error occurred while adding the response. Please try again.');
-                    console.error('Error adding response:', error);
-                    responseAdded = true; // Allow refresh even on error
-                    checkAndRefresh();
+                    console.error('Error:', error);
+                    alert('An unexpected error occurred. Please try again.');
                 });
-            }
         }
     });
 

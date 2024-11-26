@@ -3,13 +3,13 @@ require_once('../config/database.php');
 require_once('emails.php');
 
 header('Content-Type: application/json');
-$response = ['success' => true, 'messages' => []];
+$response = ['success' => true, 'message' => ''];
 
 try {
     $pdo = Database::dbConnect();
 } catch (PDOException $e) {
     $response['success'] = false;
-    $response['messages'][] = 'Database connection failed: ' . $e->getMessage();
+    $response['message'] = 'Database connection failed: ' . $e->getMessage();
     echo json_encode($response);
     exit;
 }
@@ -18,7 +18,7 @@ $data = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($data['ticket_id']) || !isset($data['response'])) {
     $response['success'] = false;
-    $response['messages'][] = 'Invalid input. Ticket ID and response are required.';
+    $response['message'] = 'Invalid input. Ticket ID and response are required.';
     echo json_encode($response);
     exit;
 }
@@ -28,7 +28,7 @@ $responseText = trim($data['response']);
 
 if (empty($responseText)) {
     $response['success'] = false;
-    $response['messages'][] = 'Response cannot be empty.';
+    $response['message'] = 'Response cannot be empty.';
     echo json_encode($response);
     exit;
 }
@@ -41,6 +41,10 @@ try {
     $stmt = $pdo->prepare("SELECT email FROM tickets WHERE id = ? UNION SELECT email FROM closed_tickets WHERE id = ?");
     $stmt->execute([$ticket_id, $ticket_id]);
     $userEmail = $stmt->fetchColumn();
+
+    if (!$userEmail) {
+        throw new Exception('Ticket not found');
+    }
 
     // First check if ticket exists in closed_tickets
     $stmt = $pdo->prepare("SELECT * FROM closed_tickets WHERE id = ?");
@@ -67,23 +71,38 @@ try {
         $stmt = $pdo->prepare("DELETE FROM closed_tickets WHERE id = ?");
         $stmt->execute([$ticket_id]);
 
-        $response['messages'][] = 'Ticket reopened successfully.';
+        // Send specialized reopening notification instead of regular response notification
+        $mailer = new MailHandler();
+        $emailSent = $mailer->sendTicketReopenedNotification($userEmail, $ticket_id, $responseText);
+        
+        $response['message'] = 'Ticket reopened successfully.';
+        if (!$emailSent) {
+            $response['message'] .= ' Note: Reopening notification email could not be sent.';
+        }
+    } else {
+        // Insert the new response
+        $stmt = $pdo->prepare("INSERT INTO responses (ticket_id, response, created_at) VALUES (?, ?, NOW())");
+        $stmt->execute([$ticket_id, $responseText]);
+
+        // Send email notification
+        $mailer = new MailHandler();
+        $emailSent = $mailer->sendResponseNotification($userEmail, $ticket_id, $responseText);
+
+        $response['message'] = 'Response added successfully.';
+        if (!$emailSent) {
+            $response['message'] .= ' Note: Response notification email could not be sent.';
+        }
     }
 
-    // Insert the new response
-    $stmt = $pdo->prepare("INSERT INTO responses (ticket_id, response, created_at) VALUES (?, ?, NOW())");
-    $stmt->execute([$ticket_id, $responseText]);
-
-    // Send email notification
-    $mailer = new MailHandler();
-    $mailer->sendResponseNotification($userEmail, $ticket_id, $responseText);
-
-    $pdo->commit();
-    $response['messages'][] = 'Response added successfully.';
-} catch (PDOException $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->commit();
+    }
+} catch (Exception $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     $response['success'] = false;
-    $response['messages'][] = 'Failed to add response: ' . $e->getMessage();
+    $response['message'] = 'Error: ' . $e->getMessage();
 }
 
 echo json_encode($response);
