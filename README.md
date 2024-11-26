@@ -1,6 +1,6 @@
 # Turing-Tickets
 
-An IT Ticket system I wrote for my senior project in college.
+An IT Ticket system I wrote for my senior project in college. Uses PHP Mail for confirmation emails.
 
 # Submit Tickets
 ![image](https://github.com/user-attachments/assets/173d073b-d423-40d6-a0d0-75cd64bca9eb)
@@ -16,4 +16,5 @@ An IT Ticket system I wrote for my senior project in college.
 
 # Known Issues
 
-- fix styles for add_admin.php
+- uniform the emails look
+- edit echo messages
