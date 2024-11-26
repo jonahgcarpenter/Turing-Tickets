@@ -2,26 +2,33 @@
 require_once('../config/database.php');
 
 header('Content-Type: application/json');
+$response = ['success' => true, 'messages' => []];
 
 try {
     $pdo = Database::dbConnect();
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    $response['success'] = false;
+    $response['messages'][] = 'Database connection failed: ' . $e->getMessage();
+    echo json_encode($response);
     exit;
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($data['ticket_id']) || !isset($data['response'])) {
-    echo json_encode(['success' => false, 'message' => 'Invalid input. Ticket ID and response are required.']);
+    $response['success'] = false;
+    $response['messages'][] = 'Invalid input. Ticket ID and response are required.';
+    echo json_encode($response);
     exit;
 }
 
 $ticket_id = intval($data['ticket_id']);
-$response = trim($data['response']);
+$responseText = trim($data['response']);
 
-if (empty($response)) {
-    echo json_encode(['success' => false, 'message' => 'Response cannot be empty.']);
+if (empty($responseText)) {
+    $response['success'] = false;
+    $response['messages'][] = 'Response cannot be empty.';
+    echo json_encode($response);
     exit;
 }
 
@@ -53,15 +60,20 @@ try {
         
         $stmt = $pdo->prepare("DELETE FROM closed_tickets WHERE id = ?");
         $stmt->execute([$ticket_id]);
+
+        $response['messages'][] = 'Ticket reopened successfully.';
     }
 
     // Insert the new response
     $stmt = $pdo->prepare("INSERT INTO responses (ticket_id, response, created_at) VALUES (?, ?, NOW())");
-    $stmt->execute([$ticket_id, $response]);
+    $stmt->execute([$ticket_id, $responseText]);
 
     $pdo->commit();
-    echo json_encode(['success' => true, 'message' => 'Response added successfully.']);
+    $response['messages'][] = 'Response added successfully.';
 } catch (PDOException $e) {
     $pdo->rollBack();
-    echo json_encode(['success' => false, 'message' => 'Failed to add response: ' . $e->getMessage()]);
+    $response['success'] = false;
+    $response['messages'][] = 'Failed to add response: ' . $e->getMessage();
 }
+
+echo json_encode($response);
