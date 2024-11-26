@@ -314,9 +314,8 @@ function addRow(ticketData) {
     const mainRow = document.createElement("tr");
     mainRow.classList.add("main-row");
     
-    // Limit the note content to 10 characters
     const truncatedContent = ticketData.notes && ticketData.notes.length > 0
-        ? ticketData.notes[0].content.slice(0, 10) // Show only the first 10 characters
+        ? ticketData.notes[0].content.slice(0, 10) + "..."
         : 'No Responses';
 
     mainRow.innerHTML = `
@@ -328,132 +327,161 @@ function addRow(ticketData) {
         <td>${ticketData.status}</td>
     `;
 
-    // Add click event to toggle expansion of the associated row
     mainRow.addEventListener("click", () => toggleExpand(mainRow));
 
-    // Create expandable row for additional details from both ticket tables
+    // Create expandable row with new structured content
     const expandableRow = document.createElement("tr");
     expandableRow.classList.add("expandable-row");
     expandableRow.innerHTML = `
         <td colspan="6">
-            <strong>Ticket ID:</strong> ${ticketData.id} <br>
-            <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'} <br>
-            <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'} <br>
-            <strong>Status:</strong> ${ticketData.status} <br>
-            <strong>Created:</strong> ${formatDateTime(ticketData.updated)} <br>
-            <strong>Notes:</strong>
-            <ul>
-                ${ticketData.notes.map(note => `<li>${note.content} (Created: ${formatDateTime(note.created_at)})</li>`).join('')}
-            </ul>
-            <div style="margin-top: 1em;">
-                <label for="status-update-${ticketData.id}"><strong>Update Status:</strong></label>
-                <select id="status-update-${ticketData.id}">
-                    <option value="open">Open</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="awaiting-response">Awaiting Response</option>
-                    <option value="closed">Closed</option>
-                </select>
+            <div class="expanded-content">
+                <div class="ticket-metadata">
+                    <div class="metadata-item">
+                        <span class="expanded-content-label">Ticket ID:</span>
+                        <span class="expanded-content-value">${ticketData.id}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="expanded-content-label">Created:</span>
+                        <span class="expanded-content-value">${formatDateTime(ticketData.updated)}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="expanded-content-label">Status:</span>
+                        <span class="expanded-content-value">${ticketData.status}</span>
+                    </div>
+                </div>
+
+                <div class="expanded-content-section">
+                    <h3>Ticket Details</h3>
+                    <div class="expanded-content-value">
+                        <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'}<br>
+                        <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'}
+                    </div>
+                </div>
+
+                <div class="expanded-content-section">
+                    <h3>Notes History</h3>
+                    <div class="expanded-content-value">
+                        ${ticketData.notes.map(note => 
+                            `<div style="margin-bottom: 10px;">
+                                <div>${note.content}</div>
+                                <small>Created: ${formatDateTime(note.created_at)}</small>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+
+                <div class="expanded-content-section">
+                    <h3>Update Ticket</h3>
+                    <div style="display: grid; gap: 15px;">
+                        <div>
+                            <label class="expanded-content-label" for="status-update-${ticketData.id}">Update Status:</label>
+                            <select id="status-update-${ticketData.id}" class="control-select">
+                                <option value="open" ${ticketData.status === 'open' ? 'selected' : ''}>Open</option>
+                                <option value="in-progress" ${ticketData.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
+                                <option value="awaiting-response" ${ticketData.status === 'awaiting-response' ? 'selected' : ''}>Awaiting Response</option>
+                                <option value="closed" ${ticketData.status === 'closed' ? 'selected' : ''}>Closed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="expanded-content-label" for="add-response-${ticketData.id}">Add Response:</label>
+                            <textarea id="add-response-${ticketData.id}" rows="3" class="control-input" style="width: 100%;"></textarea>
+                        </div>
+                        <button id="save-changes-${ticketData.id}" class="dash-button">Save Changes</button>
+                    </div>
+                </div>
             </div>
-            <div style="margin-top: 1em;">
-                <label for="add-response-${ticketData.id}"><strong>Add Response:</strong></label><br>
-                <textarea id="add-response-${ticketData.id}" rows="3" style="width: 100%;"></textarea>
-            </div>
-            <button id="save-changes-${ticketData.id}" style="margin-top: 1em;">Save Changes</button>
         </td>
     `;
-    expandableRow.style.display = "none"; // Hide initially
 
-    // Add event listener for the save changes button
+    // Rest of the event listener code remains the same
     expandableRow.addEventListener("click", (event) => {
-    if (event.target && event.target.id === `save-changes-${ticketData.id}`) {
-        const updatedStatus = document.getElementById(`status-update-${ticketData.id}`).value;
-        const newResponse = document.getElementById(`add-response-${ticketData.id}`).value;
+        if (event.target && event.target.id === `save-changes-${ticketData.id}`) {
+            const updatedStatus = document.getElementById(`status-update-${ticketData.id}`).value;
+            const newResponse = document.getElementById(`add-response-${ticketData.id}`).value;
 
-        console.log(`Ticket ID: ${ticketData.id}`);
-        console.log(`Updated Status: ${updatedStatus}`);
-        console.log(`New Response: ${newResponse}`);
+            console.log(`Ticket ID: ${ticketData.id}`);
+            console.log(`Updated Status: ${updatedStatus}`);
+            console.log(`New Response: ${newResponse}`);
 
-        // Flags to track completion of async operations
-        let statusUpdated = !updatedStatus; // Skip if no status to update
-        let responseAdded = newResponse.trim() === ""; // Skip if no response to add
+            // Flags to track completion of async operations
+            let statusUpdated = !updatedStatus; // Skip if no status to update
+            let responseAdded = newResponse.trim() === ""; // Skip if no response to add
 
-        // Function to check if both operations are complete and refresh the page
-        const checkAndRefresh = () => {
-            if (statusUpdated && responseAdded) {
-                window.location.reload();
+            // Function to check if both operations are complete and refresh the page
+            const checkAndRefresh = () => {
+                if (statusUpdated && responseAdded) {
+                    window.location.reload();
+                }
+            };
+
+            // Make POST request to update_status.php if updatedStatus is provided
+            if (updatedStatus) {
+                fetch('../php/update_status.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ticket_id: ticketData.id,
+                        status: updatedStatus
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Status updated successfully!');
+                        console.log('Status updated successfully:', data.message);
+                    } else {
+                        alert(`Failed to update status: ${data.message}`);
+                        console.error('Failed to update status:', data.message);
+                    }
+                    statusUpdated = true;
+                    checkAndRefresh();
+                })
+                .catch(error => {
+                    alert('An error occurred while updating the status. Please try again.');
+                    console.error('Error updating status:', error);
+                    statusUpdated = true; // Allow refresh even on error
+                    checkAndRefresh();
+                });
             }
-        };
 
-        // Make POST request to update_status.php if updatedStatus is provided
-        if (updatedStatus) {
-            fetch('../php/update_status.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ticket_id: ticketData.id,
-                    status: updatedStatus
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Status updated successfully!');
-                    console.log('Status updated successfully:', data.message);
-                } else {
-                    alert(`Failed to update status: ${data.message}`);
-                    console.error('Failed to update status:', data.message);
-                }
-                statusUpdated = true;
-                checkAndRefresh();
-            })
-            .catch(error => {
-                alert('An error occurred while updating the status. Please try again.');
-                console.error('Error updating status:', error);
-                statusUpdated = true; // Allow refresh even on error
-                checkAndRefresh();
-            });
+            // Make POST request to add_response.php if newResponse is provided
+            if (newResponse.trim() !== "") {
+                fetch('../php/add_response.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ticket_id: ticketData.id,
+                        response: newResponse
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Response added successfully!');
+                        console.log('Response added successfully:', data.message);
+                    } else {
+                        alert(`Failed to add response: ${data.message}`);
+                        console.error('Failed to add response:', data.message);
+                    }
+                    responseAdded = true;
+                    checkAndRefresh();
+                })
+                .catch(error => {
+                    alert('An error occurred while adding the response. Please try again.');
+                    console.error('Error adding response:', error);
+                    responseAdded = true; // Allow refresh even on error
+                    checkAndRefresh();
+                });
+            }
         }
+    });
 
-        // Make POST request to add_response.php if newResponse is provided
-        if (newResponse.trim() !== "") {
-            fetch('../php/add_response.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ticket_id: ticketData.id,
-                    response: newResponse
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Response added successfully!');
-                    console.log('Response added successfully:', data.message);
-                } else {
-                    alert(`Failed to add response: ${data.message}`);
-                    console.error('Failed to add response:', data.message);
-                }
-                responseAdded = true;
-                checkAndRefresh();
-            })
-            .catch(error => {
-                alert('An error occurred while adding the response. Please try again.');
-                console.error('Error adding response:', error);
-                responseAdded = true; // Allow refresh even on error
-                checkAndRefresh();
-            });
-        }
-    }
-});
-
-    // Append both rows to the table body
     ticketTableBody.appendChild(mainRow);
     ticketTableBody.appendChild(expandableRow);
-
 }
 
 // Function to toggle row expansion
