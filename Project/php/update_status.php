@@ -1,5 +1,6 @@
 <?php
 require_once('../config/database.php');
+require_once('emails.php');
 
 header('Content-Type: application/json');
 $response = ['success' => true, 'messages' => []];
@@ -37,6 +38,13 @@ if (!in_array($status, $valid_statuses)) {
 }
 
 try {
+    $mailer = new MailHandler();
+    
+    // Get user email before any changes
+    $stmt = $pdo->prepare("SELECT email FROM tickets WHERE id = ? UNION SELECT email FROM closed_tickets WHERE id = ?");
+    $stmt->execute([$ticket_id, $ticket_id]);
+    $userEmail = $stmt->fetchColumn();
+
     if ($status === 'closed') {
         // Move the ticket and responses to the closed tables
         $pdo->beginTransaction();
@@ -61,6 +69,7 @@ try {
 
         $pdo->commit();
         $response['messages'][] = 'Ticket closed and moved to closed_tickets with associated responses.';
+        $mailer->sendStatusChangeNotification($userEmail, $ticket_id, 'closed');
     } else {
         // Check if the ticket is currently in the closed_tickets table
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM closed_tickets WHERE id = ?");
@@ -98,6 +107,7 @@ try {
 
             $response['messages'][] = 'Ticket status updated successfully.';
         }
+        $mailer->sendStatusChangeNotification($userEmail, $ticket_id, $status);
     }
 } catch (PDOException $e) {
     if ($pdo->inTransaction()) {

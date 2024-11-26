@@ -1,5 +1,6 @@
 <?php
 require_once('../config/database.php');
+require_once('emails.php');
 
 header('Content-Type: application/json');
 $response = ['success' => true, 'messages' => []];
@@ -36,6 +37,11 @@ try {
     // Start transaction
     $pdo->beginTransaction();
 
+    // Get user email
+    $stmt = $pdo->prepare("SELECT email FROM tickets WHERE id = ? UNION SELECT email FROM closed_tickets WHERE id = ?");
+    $stmt->execute([$ticket_id, $ticket_id]);
+    $userEmail = $stmt->fetchColumn();
+
     // First check if ticket exists in closed_tickets
     $stmt = $pdo->prepare("SELECT * FROM closed_tickets WHERE id = ?");
     $stmt->execute([$ticket_id]);
@@ -67,6 +73,10 @@ try {
     // Insert the new response
     $stmt = $pdo->prepare("INSERT INTO responses (ticket_id, response, created_at) VALUES (?, ?, NOW())");
     $stmt->execute([$ticket_id, $responseText]);
+
+    // Send email notification
+    $mailer = new MailHandler();
+    $mailer->sendResponseNotification($userEmail, $ticket_id, $responseText);
 
     $pdo->commit();
     $response['messages'][] = 'Response added successfully.';

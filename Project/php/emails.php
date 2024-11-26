@@ -66,4 +66,40 @@ class MailHandler {
             return false;
         }
     }
+
+    public function sendStatusChangeNotification($userEmail, $ticketId, $newStatus) {
+        try {
+            $this->mailer->setFrom($this->config['from_email'], $this->config['from_name']);
+            $this->mailer->addAddress($userEmail);
+            $this->mailer->Subject = 'Ticket Status Updated';
+            
+            $body = "Your ticket (ID: $ticketId) status has been updated.\n\n";
+            $body .= "New Status: " . $newStatus;
+            
+            $this->mailer->Body = $body;
+            $this->mailer->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Email sending failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function sendResponseNotification($userEmail, $ticketId, $response) {
+        try {
+            $this->mailer->setFrom($this->config['from_email'], $this->config['from_name']);
+            $this->mailer->addAddress($userEmail);
+            $this->mailer->Subject = 'New Response to Your Ticket';
+            
+            $body = "A new response has been added to your ticket (ID: $ticketId).\n\n";
+            $body .= "Response: " . $response;
+            
+            $this->mailer->Body = $body;
+            $this->mailer->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Email sending failed: " . $e->getMessage());
+            return false;
+        }
+    }
 }
