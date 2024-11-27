@@ -243,4 +243,31 @@ class MailHandler {
             return false;
         }
     }
+
+    public function sendAdminWelcomeEmail($userEmail, $username, $password) {
+        try {
+            $this->resetMailer();
+            $this->mailer->setFrom($this->config['from_email'], $this->config['from_name']);
+            $this->mailer->addAddress($userEmail);
+            $this->mailer->Subject = "Welcome to Turing Tickets Admin Panel";
+            
+            $resetUrl = "https://turing.cs.olemiss.edu/~jgcarpe2/CS487/Project/Project/html/reset_password.html";
+            $content = "
+                <h2>Welcome to Turing Tickets!</h2>
+                <p>Your admin account has been created successfully.</p>
+                <p><strong>Username:</strong> $username</p>
+                <p><strong>Temporary Password:</strong> $password</p>
+                <p>For security reasons, please change your password immediately by visiting:</p>
+                <p><strong>Password Reset:</strong> <a href='$resetUrl'>Click here to reset your password</a></p>
+                <p>Please keep this information secure and do not share it with others.</p>";
+            
+            $this->mailer->Body = $this->getEmailTemplate($content);
+            $this->mailer->AltBody = strip_tags(str_replace(['<br>', '</p>'], "\n", $content));
+            
+            return $this->sendEmail();
+        } catch (Exception $e) {
+            error_log("Admin welcome email error: " . $e->getMessage());
+            return false;
+        }
+    }
 }

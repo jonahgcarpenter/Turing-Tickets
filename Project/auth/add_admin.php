@@ -1,5 +1,6 @@
 <?php
 require_once('../config/database.php');
+require_once('../php/emails.php');
 
 header('Content-Type: application/json');
 
@@ -28,11 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':email' => $email
         ]);
 
+        // Send welcome email with credentials
+        $mailHandler = new MailHandler();
+        $emailSent = $mailHandler->sendAdminWelcomeEmail($email, $username, $password);
+
         // Retrieve the ID of the newly added admin
         $newAdmin = [
             'id' => $pdo->lastInsertId(),
             'username' => $username,
-            'email' => $email
+            'email' => $email,
+            'emailSent' => $emailSent
         ];
 
         echo json_encode(['success' => true, 'admin' => $newAdmin]);
