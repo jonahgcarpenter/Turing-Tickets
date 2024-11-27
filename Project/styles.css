@@ -245,25 +245,22 @@ footer {
 }
 
 #dashboard-table td.email-cell {
-  max-width: 150px; /* Set a max width for email cells */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: max-width 0.3s ease;
-  text-align: left;
-  position: relative;
-  z-index: 1;
-  background-color: inherit;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: max-width 0.3s ease;
+    position: relative;
+    z-index: 1;
 }
 
 #dashboard-table td.email-cell.expanded {
-  max-width: none;
-  white-space: normal;
-  max-width: none !important;
-  overflow: visible;
-  position: relative;
-  z-index: 2;
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+    position: relative;
+    z-index: 2;
 }
 
 #dashboard-table .ticket-number {
@@ -410,26 +407,4 @@ footer {
 #dashboard-table td:last-child {
     text-align: right;
     width: 60px; /* Fixed width for action column */
-}
-
-#dashboard-table td.email-cell {
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: left;
-    cursor: pointer;
-    transition: max-width 0.3s ease;
-    position: relative;
-    z-index: 1;
-    background-color: inherit;
-}
-
-#dashboard-table td.email-cell.expanded {
-    max-width: none;
-    white-space: normal;
-    max-width: none !important;
-    overflow: visible;
-    position: relative;
-    z-index: 2;
 }
