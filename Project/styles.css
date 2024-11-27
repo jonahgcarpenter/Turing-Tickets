@@ -96,6 +96,30 @@ button:hover {
   background-color: #6bb1d4; /* Darker shade of powder blue */
 }
 
+/* Logout Button Styles */
+.logout-button {
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #dc3545; /* Red color */
+}
+
+.logout-button:hover span {
+    display: none;
+}
+
+.logout-button:hover::after {
+    content: 'Logout';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+}
+
 /* Footer */
 footer {
   text-align: center;

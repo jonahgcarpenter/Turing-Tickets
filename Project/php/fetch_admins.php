@@ -3,6 +3,7 @@ require_once('../config/database.php');
 session_start();
 header('Content-Type: application/json');
 
+// Enhanced session check with redirect information
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     echo json_encode([
         'error' => 'Unauthorized access',

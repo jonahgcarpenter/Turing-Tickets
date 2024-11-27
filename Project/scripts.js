@@ -82,6 +82,12 @@ function handleUnauthorizedResponse(response) {
 
 // Modify the loadAdminTable function
 async function loadAdminTable() {
+    const adminTableBody = document.getElementById('adminTableBody');
+    if (!adminTableBody) return;
+
+    // Show loading state
+    adminTableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Loading...</td></tr>';
+
     try {
         const response = await fetch('../php/fetch_admins.php', {
             method: 'GET'
@@ -91,8 +97,7 @@ async function loadAdminTable() {
         if (handleUnauthorizedResponse(result)) return;
 
         if (result.success) {
-            const adminTableBody = document.getElementById('adminTableBody');
-            adminTableBody.innerHTML = ''; // Clear any existing rows
+            adminTableBody.innerHTML = ''; // Clear loading message
 
             result.admins.forEach(admin => {
                 console.log("Loaded admin with ID:", admin.id);
@@ -125,10 +130,12 @@ async function loadAdminTable() {
                 adminTableBody.appendChild(row);
             });
         } else {
-            alert(result.error);
+            adminTableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error loading admins</td></tr>';
+            if (result.error) alert(result.error);
         }
     } catch (error) {
         console.error("Error loading admin data:", error);
+        adminTableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error loading admins</td></tr>';
         alert("An unexpected error occurred while loading admin data.");
     }
 }
