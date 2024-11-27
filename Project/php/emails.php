@@ -258,34 +258,23 @@ class MailHandler {
                 <p>Your admin account has been created successfully.</p>
                 <p><strong>Username:</strong> $username</p>
                 <p><strong>Temporary Password:</strong> $password</p>
-                <p>For security reasons, please change your password immediately using the link below:</p>
-                <table width='100%' cellspacing='0' cellpadding='0'>
-                    <tr>
-                        <td align='center' style='padding: 20px;'>
-                            <table cellspacing='0' cellpadding='0'>
-                                <tr>
-                                    <td style='background-color: #83C5E5; border-radius: 4px; padding: 12px 25px;'>
-                                        <a href='$resetUrl' 
-                                           target='_blank'
-                                           style='color: #FFFFFF; 
-                                                  font-family: Arial, sans-serif; 
-                                                  font-size: 16px; 
-                                                  font-weight: bold; 
-                                                  text-decoration: none; 
-                                                  display: inline-block;'>
-                                            Reset Password
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
+                <p>For security reasons, please change your password immediately.</p>
+                <div style='text-align: center; padding: 20px;'>
+                    <a href='$resetUrl' 
+                       style='background-color: #83C5E5;
+                              color: #ffffff;
+                              padding: 10px 20px;
+                              text-decoration: none;
+                              font-weight: bold;
+                              border-radius: 5px;'>
+                        Reset Password
+                    </a>
+                </div>
                 <p style='color: #ff0000; text-align: center;'>
                     <strong>Important:</strong> Please change your password immediately for security purposes.
                 </p>
-                <p style='text-align: center;'>
-                    If the button above doesn't work, copy and paste this link into your browser:<br>
+                <p style='text-align: center; color: #666666;'>
+                    If the button doesn't work, copy and paste this link:<br>
                     <a href='$resetUrl'>$resetUrl</a>
                 </p>";
             

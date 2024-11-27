@@ -225,7 +225,6 @@ footer {
 
 #dashboard-table th, #dashboard-table td {
   padding: 12px;
-  text-align: left;
   border-bottom: 1px solid var(--border-color); /* Subtle border */
 }
 

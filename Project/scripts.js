@@ -132,7 +132,7 @@ async function loadAdminTable() {
 
                 // Action cell with delete button
                 const actionCell = document.createElement('td');
-                actionCell.style.textAlign = 'right';
+                actionCell.style.textAlign = 'right !important';
                 const deleteButton = document.createElement('button');
                 deleteButton.classList.add('delete-btn');
                 deleteButton.setAttribute('aria-label', 'Delete');
@@ -198,25 +198,26 @@ if (addAdminForm) {
 // Function to add a new admin row to the admin table dynamically
 function addAdminToTable(admin) {
     const adminTableBody = document.getElementById("adminTableBody");
-
     const row = document.createElement("tr");
-    row.setAttribute('data-id', admin.id); // Set data-id attribute for row
+    row.setAttribute('data-id', admin.id);
 
-    // Username cell
+    // Username cell with explicit left alignment
     const usernameCell = document.createElement("td");
+    usernameCell.style.textAlign = 'left';
     usernameCell.textContent = admin.username;
     row.appendChild(usernameCell);
 
-    // Email cell with proper class
+    // Email cell with explicit left alignment
     const emailCell = document.createElement("td");
+    emailCell.style.textAlign = 'left';
     emailCell.classList.add("email-cell");
     emailCell.textContent = admin.email;
     addEmailClickHandler(emailCell);
     row.appendChild(emailCell);
 
-    // Action cell with delete button
+    // Action cell with explicit right alignment
     const actionCell = document.createElement("td");
-    actionCell.style.textAlign = 'right';
+    actionCell.style.textAlign = 'right !important';
     const deleteButton = document.createElement("button");
     deleteButton.classList.add("delete-btn");
     deleteButton.setAttribute('aria-label', 'Delete');
@@ -366,23 +367,21 @@ async function populateTicketTable() {
 // Function to add rows dynamically with expand-on-click functionality
 function addRow(ticketData) {
     const ticketTableBody = document.getElementById("ticketTableBody");
-
-    // Create the main row for ticket data
     const mainRow = document.createElement("tr");
-    mainRow.classList.add("main-row");
-    mainRow.classList.add(`status-${ticketData.status}`); // Add status-specific class
+    mainRow.classList.add("main-row", `status-${ticketData.status}`);
     
     const truncatedContent = ticketData.notes && ticketData.notes.length > 0
         ? ticketData.notes[0].content.slice(0, 10) + "..."
         : 'No Responses';
 
+    // Explicitly set text-align for each cell
     mainRow.innerHTML = `
-        <td>${ticketData.id}</td>
-        <td>${formatDateTime(ticketData.created_at)}</td>
-        <td>${ticketData.request_type || 'N/A'}</td>
-        <td>${ticketData.request_title || 'N/A'}</td>
-        <td>${truncatedContent}</td>
-        <td>${ticketData.status}</td>
+        <td style="text-align: left !important">${ticketData.id}</td>
+        <td style="text-align: left !important">${formatDateTime(ticketData.created_at)}</td>
+        <td style="text-align: left !important">${ticketData.request_type || 'N/A'}</td>
+        <td style="text-align: left !important">${ticketData.request_title || 'N/A'}</td>
+        <td style="text-align: left !important">${truncatedContent}</td>
+        <td style="text-align: left !important">${ticketData.status}</td>
     `;
 
     mainRow.addEventListener("click", () => toggleExpand(mainRow));
@@ -391,8 +390,8 @@ function addRow(ticketData) {
     const expandableRow = document.createElement("tr");
     expandableRow.classList.add("expandable-row");
     expandableRow.innerHTML = `
-        <td colspan="6">
-            <div class="expanded-content">
+        <td colspan="6" style="text-align: left">
+            <div class="expanded-content" style="text-align: left">
                 <div class="ticket-metadata">
                     <div class="metadata-item">
                         <span class="expanded-content-label">Created At:</span>
