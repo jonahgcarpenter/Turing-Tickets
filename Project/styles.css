@@ -323,3 +323,20 @@ footer {
     flex: 1;
     min-width: 200px;
 }
+
+.note-container {
+    background-color: white;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.note-content {
+    margin-bottom: 6px;
+}
+
+.note-metadata {
+    font-size: 0.85em;
+    color: #666;
+}
