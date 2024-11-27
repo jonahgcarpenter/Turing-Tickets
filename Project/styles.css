@@ -105,10 +105,11 @@ button:hover {
 
 .logout-button:hover {
     background-color: #dc3545; /* Red color */
+    color: transparent; /* Hide all text content */
 }
 
-.logout-button:hover span {
-    display: none;
+.logout-button:hover * {
+    visibility: hidden; /* Hide all child elements */
 }
 
 .logout-button:hover::after {
@@ -118,6 +119,8 @@ button:hover {
     top: 50%;
     transform: translate(-50%, -50%);
     color: white;
+    white-space: nowrap;
+    visibility: visible; /* Make sure the 'Logout' text is visible */
 }
 
 /* Footer */
