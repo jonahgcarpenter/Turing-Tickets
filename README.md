@@ -19,3 +19,4 @@ An IT Ticket system I wrote for my senior project in college. Uses PHP Mail for 
 - uniform the emails look, so they properly chain together
 - edit echo messages
 - make sure responses that reopen tickets get saved properly
+- sometimes input fields bug out
