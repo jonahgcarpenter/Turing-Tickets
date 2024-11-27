@@ -2,6 +2,12 @@
 require_once('../config/database.php');
 session_start(); // Add this line at the top
 
+// Check if admin is logged in
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    echo json_encode(['error' => 'Unauthorized access']);
+    exit();
+}
+
 header('Content-Type: application/json');
 
 // Log errors to the console
@@ -14,10 +20,11 @@ function fetchNotes($pdo, $ticketId, $isClosed = false) {
     $tableName = $isClosed ? 'closed_responses' : 'responses';
     try {
         $stmt = $pdo->prepare("SELECT r.response AS content, r.created_at, 
-                                     a.id as admin_id, a.username as admin_username 
+                                     u.id as admin_id, u.username as admin_username 
                               FROM $tableName r 
-                              LEFT JOIN admins a ON r.admin_id = a.id 
+                              LEFT JOIN users u ON r.admin_id = u.id 
                               WHERE r.ticket_id = :ticket_id 
+                              AND u.role = 'admin'
                               ORDER BY r.created_at DESC");
         $stmt->execute([':ticket_id' => $ticketId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -38,11 +38,18 @@ try {
     // Start transaction
     $pdo->beginTransaction();
     
-    // Get admin_id from session and verify it exists
+    // Get admin_id from session and verify it exists and is valid
     if (!isset($_SESSION['admin_id'])) {
         throw new Exception('Admin session not found');
     }
     $admin_id = $_SESSION['admin_id'];
+
+    // Verify the admin exists and is still valid
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ? AND role = 'admin'");
+    $stmt->execute([$admin_id]);
+    if (!$stmt->fetch()) {
+        throw new Exception('Invalid admin credentials');
+    }
 
     // Get user email
     $stmt = $pdo->prepare("SELECT email FROM tickets WHERE id = ? UNION SELECT email FROM closed_tickets WHERE id = ?");

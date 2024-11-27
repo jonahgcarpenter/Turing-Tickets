@@ -365,7 +365,7 @@ function addRow(ticketData) {
                         ${ticketData.notes.map(note => 
                             `<div style="margin-bottom: 10px;">
                                 <div>${note.content}</div>
-                                <small>Created by: ${note.admin_username || 'System'} (ID: ${note.admin_id || 'N/A'}) on ${formatDateTime(note.created_at)}</small>
+                                <small>Created by: ${note.admin_username || 'System'} on ${formatDateTime(note.created_at)}</small>
                             </div>`
                         ).join('')}
                     </div>

@@ -1,6 +1,13 @@
 <?php
 require_once('../config/database.php');
 require_once('../php/emails.php');
+session_start();
+
+// Check if admin is logged in
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    echo json_encode(['error' => 'Unauthorized access']);
+    exit();
+}
 
 header('Content-Type: application/json');
 
