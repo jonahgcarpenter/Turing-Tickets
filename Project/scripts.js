@@ -171,8 +171,11 @@ function addAdminToTable(admin) {
     // Action cell with delete button
     const actionCell = document.createElement("td");
     const deleteButton = document.createElement("button");
-    deleteButton.textContent = " ";
     deleteButton.classList.add("delete-btn");
+    deleteButton.setAttribute('aria-label', 'Delete');
+    const icon = document.createElement("i");
+    icon.classList.add("fas", "fa-trash-alt");
+    deleteButton.appendChild(icon);
     deleteButton.onclick = () => confirmDelete(admin.id);
     actionCell.appendChild(deleteButton);
     row.appendChild(actionCell);

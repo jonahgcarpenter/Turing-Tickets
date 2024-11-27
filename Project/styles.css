@@ -256,6 +256,25 @@ footer {
   background-color: darkred; /* Darker shade on hover */
 }
 
+.delete-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background-color: #ffebee;
+    transform: scale(1.1);
+}
+
+.delete-btn i {
+    font-size: 1.2rem;
+}
+
 .expandable-row {
   display: none; /* Hide by default */
 }
