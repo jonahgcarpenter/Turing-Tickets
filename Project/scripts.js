@@ -341,10 +341,6 @@ function addRow(ticketData) {
             <div class="expanded-content">
                 <div class="ticket-metadata">
                     <div class="metadata-item">
-                        <span class="expanded-content-label">Created By:</span>
-                        <span class="expanded-content-value">${ticketData.email || 'N/A'}</span>
-                    </div>
-                    <div class="metadata-item">
                         <span class="expanded-content-label">Created At:</span>
                         <span class="expanded-content-value">${formatDateTime(ticketData.created_at)}</span>
                     </div>
@@ -357,8 +353,9 @@ function addRow(ticketData) {
                 <div class="expanded-content-section">
                     <h3>Ticket Details</h3>
                     <div class="expanded-content-value">
-                        <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'}<br>
-                        <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'}
+                        <strong>Created By:</strong> ${ticketData.email || 'N/A'}<br>
+                        <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'}<br>
+                        <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'}
                     </div>
                 </div>
 

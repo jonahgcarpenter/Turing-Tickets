@@ -67,16 +67,21 @@
                         <div class="expanded-content">
                             <div class="ticket-metadata">
                                 <div class="metadata-item">
-                                    <span class="expanded-content-label">Created By:</span>
-                                    <span class="expanded-content-value">User Email</span>
-                                </div>
-                                <div class="metadata-item">
                                     <span class="expanded-content-label">Created At:</span>
                                     <span class="expanded-content-value creation-time">Date</span>
                                 </div>
                                 <div class="metadata-item">
                                     <span class="expanded-content-label">Last Updated:</span>
                                     <span class="expanded-content-value">Date</span>
+                                </div>
+                            </div>
+                            
+                            <div class="expanded-content-section">
+                                <h3>Ticket Details</h3>
+                                <div class="expanded-content-value">
+                                    <strong>Created By:</strong> <span class="expanded-content-value">User Email</span><br>
+                                    <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'}<br>
+                                    <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'}
                                 </div>
                             </div>
                             
