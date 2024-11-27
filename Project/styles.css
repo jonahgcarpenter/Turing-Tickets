@@ -5,6 +5,10 @@
   --background-color: #fff;
   --accent-color: #f5f5f5;
   --border-color: #ccc;
+  --status-open: #d4edda;          /* Green */
+  --status-in-progress: #cce5ff;   /* Blue */
+  --status-awaiting: #fff3cd;      /* Yellow */
+  --status-closed: #f8d7da;        /* Red */
 }
 
 /* General Styles */
@@ -339,4 +343,21 @@ footer {
 .note-metadata {
     font-size: 0.85em;
     color: #666;
+}
+
+/* Status-specific row colors */
+#dashboard-table tr.status-open td {
+    background-color: var(--status-open);
+}
+
+#dashboard-table tr.status-in-progress td {
+    background-color: var(--status-in-progress);
+}
+
+#dashboard-table tr.status-awaiting-response td {
+    background-color: var(--status-awaiting);
+}
+
+#dashboard-table tr.status-closed td {
+    background-color: var(--status-closed);
 }

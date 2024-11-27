@@ -317,6 +317,7 @@ function addRow(ticketData) {
     // Create the main row for ticket data
     const mainRow = document.createElement("tr");
     mainRow.classList.add("main-row");
+    mainRow.classList.add(`status-${ticketData.status}`); // Add status-specific class
     
     const truncatedContent = ticketData.notes && ticketData.notes.length > 0
         ? ticketData.notes[0].content.slice(0, 10) + "..."
@@ -353,9 +354,18 @@ function addRow(ticketData) {
                 <div class="expanded-content-section">
                     <h3>Ticket Details</h3>
                     <div class="expanded-content-value">
-                        <strong>Created By:</strong> ${ticketData.email || 'N/A'}<br>
+                        <strong>Name:</strong> ${ticketData.name || 'N/A'}<br>
+                        <strong>Email:</strong> ${ticketData.email || 'N/A'}<br>
                         <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'}<br>
                         <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'}
+                    </div>
+                </div>
+
+                <div class="expanded-content-section">
+                    <h3>Initial Description</h3>
+                    <div class="note-container">
+                        <div class="note-content">${ticketData.description || 'No initial description provided'}</div>
+                        <div class="note-metadata">Created by: ${ticketData.email || 'Unknown'} on ${formatDateTime(ticketData.created_at)}</div>
                     </div>
                 </div>
 
