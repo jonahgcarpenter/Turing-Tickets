@@ -209,6 +209,10 @@ footer {
   background-color: var(--accent-color); /* Light background for cells */
 }
 
+.main-row {
+  cursor: pointer;
+}
+
 #dashboard-table td.email-cell {
   max-width: 150px; /* Set a max width for email cells */
   overflow: hidden;

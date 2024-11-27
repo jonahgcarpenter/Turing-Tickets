@@ -1,5 +1,6 @@
 <?php
 require_once('../config/database.php');
+session_start(); // Add this line at the top
 
 header('Content-Type: application/json');
 
@@ -12,7 +13,12 @@ function logError($message) {
 function fetchNotes($pdo, $ticketId, $isClosed = false) {
     $tableName = $isClosed ? 'closed_responses' : 'responses';
     try {
-        $stmt = $pdo->prepare("SELECT response AS content, created_at FROM $tableName WHERE ticket_id = :ticket_id ORDER BY created_at DESC");
+        $stmt = $pdo->prepare("SELECT r.response AS content, r.created_at, 
+                                     a.id as admin_id, a.username as admin_username 
+                              FROM $tableName r 
+                              LEFT JOIN admins a ON r.admin_id = a.id 
+                              WHERE r.ticket_id = :ticket_id 
+                              ORDER BY r.created_at DESC");
         $stmt->execute([':ticket_id' => $ticketId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {

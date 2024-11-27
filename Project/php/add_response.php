@@ -1,6 +1,7 @@
 <?php
 require_once('../config/database.php');
 require_once('emails.php');
+session_start(); // Add session start
 
 header('Content-Type: application/json');
 $response = ['success' => true, 'message' => ''];
@@ -36,6 +37,12 @@ if (empty($responseText)) {
 try {
     // Start transaction
     $pdo->beginTransaction();
+    
+    // Get admin_id from session and verify it exists
+    if (!isset($_SESSION['admin_id'])) {
+        throw new Exception('Admin session not found');
+    }
+    $admin_id = $_SESSION['admin_id'];
 
     // Get user email
     $stmt = $pdo->prepare("SELECT email FROM tickets WHERE id = ? UNION SELECT email FROM closed_tickets WHERE id = ?");
@@ -84,9 +91,9 @@ try {
         $stmt = $pdo->prepare("UPDATE tickets SET updated_at = NOW() WHERE id = ?");
         $stmt->execute([$ticket_id]);
 
-        // Insert the new response
-        $stmt = $pdo->prepare("INSERT INTO responses (ticket_id, response, created_at) VALUES (?, ?, NOW())");
-        $stmt->execute([$ticket_id, $responseText]);
+        // Insert the new response with verified admin_id
+        $stmt = $pdo->prepare("INSERT INTO responses (ticket_id, admin_id, response, created_at) VALUES (?, ?, ?, NOW())");
+        $stmt->execute([$ticket_id, $admin_id, $responseText]);
 
         // Send email notification
         $mailer = new MailHandler();
