@@ -83,7 +83,7 @@ async function loadAdminTable() {
             adminTableBody.innerHTML = ''; // Clear any existing rows
 
             result.admins.forEach(admin => {
-                console.log("Loaded admin with ID:", admin.id); // Log the ID to verify it is present
+                console.log("Loaded admin with ID:", admin.id);
                 const row = document.createElement('tr');
                 row.setAttribute('data-id', admin.id);
 
@@ -99,9 +99,13 @@ async function loadAdminTable() {
 
                 // Action cell with delete button
                 const actionCell = document.createElement('td');
+                actionCell.style.textAlign = 'right';
                 const deleteButton = document.createElement('button');
-                deleteButton.textContent = ' ';
                 deleteButton.classList.add('delete-btn');
+                deleteButton.setAttribute('aria-label', 'Delete');
+                const trashIcon = document.createElement('i');
+                trashIcon.classList.add('fas', 'fa-trash-alt');
+                deleteButton.appendChild(trashIcon);
                 deleteButton.onclick = () => confirmDelete(admin.id);
                 actionCell.appendChild(deleteButton);
                 row.appendChild(actionCell);

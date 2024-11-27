@@ -242,39 +242,29 @@ footer {
 
 /* Delete Admin */
 .delete-btn {
-  background-color: red;
-  color: white;
+  background-color: #dc3545;  /* Red color for delete action */
+  color: var(--background-color);
   border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+  font-size: 1em;
+  text-align: center;
+  padding: 8px;
+  width: auto;  /* Override the default button width */
+  margin: 0;    /* Override the default button margin */
+  display: inline-block;  /* Override the default button display */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .delete-btn:hover {
-  background-color: darkred; /* Darker shade on hover */
+  background-color: #c82333;  /* Darker red on hover */
 }
 
-.delete-btn {
-    background: none;
-    border: none;
-    color: #dc3545;
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+.dash-button {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Added shadow */
 }
 
-.delete-btn:hover {
-    background-color: #ffebee;
-    transform: scale(1.1);
-}
-
-.delete-btn i {
-    font-size: 1.2rem;
-}
-
+/* Add new styles for expanded content */
 .expandable-row {
   display: none; /* Hide by default */
 }
@@ -283,11 +273,6 @@ footer {
   display: table-row; /* Show when expanded */
 }
 
-.dash-button {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Added shadow */
-}
-
-/* Add new styles for expanded content */
 .expanded-content {
     padding: 20px;
     background-color: #fff;

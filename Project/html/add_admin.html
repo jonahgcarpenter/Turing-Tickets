@@ -37,7 +37,7 @@
           <tr>
               <th>Username</th>
               <th>Email</th>
-              <th>Action</th>
+              <th style="text-align: right;">Action</th>
           </tr>
       </thead>
       <tbody id="adminTableBody">
@@ -45,7 +45,11 @@
         <tr>
           <td>admin1</td>
           <td class="email-cell">admin1@example.com</td>
-          <td><button class="delete-btn" aria-label="Delete"><i class="fas fa-trash-alt"></i></button></td>
+          <td style="text-align: right;">
+            <button class="delete-btn" aria-label="Delete">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>
         </tr>
         <!-- Admin rows will be dynamically inserted here -->
     </tbody>
