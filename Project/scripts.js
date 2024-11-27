@@ -80,6 +80,20 @@ function handleUnauthorizedResponse(response) {
     return false;
 }
 
+// Add email click handler function
+function addEmailClickHandler(emailCell) {
+    emailCell.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Toggle the expanded class
+        this.classList.toggle('expanded');
+        
+        // Prevent the click from bubbling up to parent elements
+        return false;
+    });
+}
+
 // Modify the loadAdminTable function
 async function loadAdminTable() {
     const adminTableBody = document.getElementById('adminTableBody');
@@ -109,9 +123,11 @@ async function loadAdminTable() {
                 usernameCell.textContent = admin.username;
                 row.appendChild(usernameCell);
 
-                // Email cell
+                // Email cell with proper class
                 const emailCell = document.createElement('td');
+                emailCell.classList.add('email-cell'); // Add this class consistently
                 emailCell.textContent = admin.email;
+                addEmailClickHandler(emailCell);
                 row.appendChild(emailCell);
 
                 // Action cell with delete button
@@ -163,9 +179,12 @@ if (addAdminForm) {
             if (handleUnauthorizedResponse(result)) return;
 
             if (result.success) {
-                alert("Admin added successfully!");
-                addAdminToTable(result.admin); // Add the new admin to the table without reloading
-                addAdminForm.reset(); // Clear the form after success
+                const emailMsg = result.emailSent 
+                    ? "Login credentials have been sent to the admin's email address."
+                    : "Admin added successfully, but there was an issue sending the welcome email.";
+                alert("Admin added successfully! " + emailMsg);
+                addAdminToTable(result.admin);
+                addAdminForm.reset();
             } else {
                 alert(result.error);
             }
@@ -188,13 +207,16 @@ function addAdminToTable(admin) {
     usernameCell.textContent = admin.username;
     row.appendChild(usernameCell);
 
-    // Email cell
+    // Email cell with proper class
     const emailCell = document.createElement("td");
+    emailCell.classList.add("email-cell");
     emailCell.textContent = admin.email;
+    addEmailClickHandler(emailCell);
     row.appendChild(emailCell);
 
     // Action cell with delete button
     const actionCell = document.createElement("td");
+    actionCell.style.textAlign = 'right';
     const deleteButton = document.createElement("button");
     deleteButton.classList.add("delete-btn");
     deleteButton.setAttribute('aria-label', 'Delete');

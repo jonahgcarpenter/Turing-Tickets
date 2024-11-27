@@ -25,12 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // Hash the password before storing it
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
     try {
         $pdo = Database::dbConnect();
         
+        // Hash the password before storing it
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
         // Insert the new admin into the database
         $stmt = $pdo->prepare('INSERT INTO users (username, password, email, role) VALUES (:username, :password, :email, "admin")');
         $stmt->execute([
@@ -39,19 +39,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':email' => $email
         ]);
 
+        $newAdminId = $pdo->lastInsertId();
+
         // Send welcome email with credentials
         $mailHandler = new MailHandler();
         $emailSent = $mailHandler->sendAdminWelcomeEmail($email, $username, $password);
 
-        // Retrieve the ID of the newly added admin
-        $newAdmin = [
-            'id' => $pdo->lastInsertId(),
-            'username' => $username,
-            'email' => $email,
-            'emailSent' => $emailSent
-        ];
+        if (!$emailSent) {
+            // Log the email failure but don't prevent the admin creation
+            error_log("Failed to send welcome email to new admin: $email");
+        }
 
-        echo json_encode(['success' => true, 'admin' => $newAdmin]);
+        echo json_encode([
+            'success' => true, 
+            'admin' => [
+                'id' => $newAdminId,
+                'username' => $username,
+                'email' => $email
+            ],
+            'emailSent' => $emailSent
+        ]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => 'Error adding admin: ' . $e->getMessage()]);
     }

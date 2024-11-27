@@ -251,15 +251,21 @@ class MailHandler {
             $this->mailer->addAddress($userEmail);
             $this->mailer->Subject = "Welcome to Turing Tickets Admin Panel";
             
-            $resetUrl = "https://turing.cs.olemiss.edu/~jgcarpe2/CS487/Project/Project/html/reset_password.html";
+            // Get the base URL dynamically
+            $baseUrl = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https://" : "http://";
+            $baseUrl .= $_SERVER['HTTP_HOST'];
+            $baseUrl .= dirname(dirname($_SERVER['PHP_SELF']));
+            
+            $resetUrl = $baseUrl . "/html/reset_password.html";
+            
             $content = "
                 <h2>Welcome to Turing Tickets!</h2>
                 <p>Your admin account has been created successfully.</p>
                 <p><strong>Username:</strong> $username</p>
                 <p><strong>Temporary Password:</strong> $password</p>
-                <p>For security reasons, please change your password immediately by visiting:</p>
-                <p><strong>Password Reset:</strong> <a href='$resetUrl'>Click here to reset your password</a></p>
-                <p>Please keep this information secure and do not share it with others.</p>";
+                <p>For security reasons, please change your password immediately by clicking the link below:</p>
+                <p><a href='$resetUrl' style='display: inline-block; background-color: #83C5E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;'>Reset Password</a></p>
+                <p style='color: #ff0000;'><strong>Important:</strong> Please change your password immediately for security purposes.</p>";
             
             $this->mailer->Body = $this->getEmailTemplate($content);
             $this->mailer->AltBody = strip_tags(str_replace(['<br>', '</p>'], "\n", $content));
