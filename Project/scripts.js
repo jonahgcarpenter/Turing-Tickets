@@ -270,40 +270,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function populateTicketTable() {
     try {
-        // Get filter, sort, and search input values
         const searchInput = document.getElementById("search-ticket").value.trim();
         const sortOption = document.getElementById("sort-tickets").value;
         const filterOption = document.getElementById("filter-status").value;
 
-        // Construct query parameters dynamically
         const params = new URLSearchParams();
 
-        // Add filterOption only if it's not "all"
+        // Handle filter option
         if (filterOption && filterOption !== "all") {
-            params.append("filterOption", filterOption); // Automatically encodes filterOption
+            params.append("filterOption", filterOption);
         }
 
+        // Handle sort option
         if (sortOption) {
             params.append("sort", sortOption);
         }
 
+        // Handle search
         if (searchInput) {
             params.append("ticket_id", searchInput);
         }
 
-        // Build the full URL with query parameters
         const url = `${BASE_API_URL}?${params.toString()}`;
-        console.log("Constructed URL:", url);
+        console.log("Fetching tickets with URL:", url); // Debug log
 
-        // Fetch ticket data from the backend
         const response = await fetch(url);
         const data = await response.json();
+        console.log("Received data:", data); // Debug log
 
         if (!data.error) {
             const ticketTableBody = document.getElementById("ticketTableBody");
-            ticketTableBody.innerHTML = ""; // Clear existing rows
-
-            // Populate the table with filtered and sorted tickets directly from the backend
+            ticketTableBody.innerHTML = "";
             data.forEach(addRow);
         } else {
             console.error("Failed to fetch tickets:", data.error);
@@ -327,7 +324,7 @@ function addRow(ticketData) {
 
     mainRow.innerHTML = `
         <td>${ticketData.id}</td>
-        <td>${formatDateTime(ticketData.updated)}</td>
+        <td>${formatDateTime(ticketData.created_at)}</td>
         <td>${ticketData.request_type || 'N/A'}</td>
         <td>${ticketData.request_title || 'N/A'}</td>
         <td>${truncatedContent}</td>
@@ -344,16 +341,16 @@ function addRow(ticketData) {
             <div class="expanded-content">
                 <div class="ticket-metadata">
                     <div class="metadata-item">
-                        <span class="expanded-content-label">Ticket ID:</span>
-                        <span class="expanded-content-value">${ticketData.id}</span>
+                        <span class="expanded-content-label">Created By:</span>
+                        <span class="expanded-content-value">${ticketData.email || 'N/A'}</span>
                     </div>
                     <div class="metadata-item">
-                        <span class="expanded-content-label">Created:</span>
-                        <span class="expanded-content-value">${formatDateTime(ticketData.updated)}</span>
+                        <span class="expanded-content-label">Created At:</span>
+                        <span class="expanded-content-value">${formatDateTime(ticketData.created_at)}</span>
                     </div>
                     <div class="metadata-item">
-                        <span class="expanded-content-label">Status:</span>
-                        <span class="expanded-content-value">${ticketData.status}</span>
+                        <span class="expanded-content-label">Last Updated:</span>
+                        <span class="expanded-content-value">${formatDateTime(ticketData.updated_at)}</span>
                     </div>
                 </div>
 
@@ -474,10 +471,19 @@ function toggleExpand(row) {
 
 // Utility function to format date and time
 function formatDateTime(dateTimeStr) {
-    const dateObj = new Date(dateTimeStr);
+    if (!dateTimeStr) return 'N/A';
+    
+    const dateObj = new Date(dateTimeStr.replace(' ', 'T'));
     if (isNaN(dateObj.getTime())) return 'Invalid Date';
-    const hours = dateObj.getHours() % 12 || 12;
-    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-    const ampm = dateObj.getHours() >= 12 ? 'PM' : 'AM';
-    return `${hours}:${minutes} ${ampm} ${dateObj.getMonth() + 1}/${dateObj.getDate()}/${dateObj.getFullYear()}`;
+    
+    const options = {
+        hour: 'numeric',
+        minute: '2-digit',
+        month: 'numeric',
+        day: 'numeric',
+        year: 'numeric',
+        hour12: true
+    };
+    
+    return new Intl.DateTimeFormat('en-US', options).format(dateObj);
 }

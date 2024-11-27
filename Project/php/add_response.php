@@ -80,6 +80,10 @@ try {
             $response['message'] .= ' Note: Reopening notification email could not be sent.';
         }
     } else {
+        // Update the ticket's 'updated_at' without touching 'created_at'
+        $stmt = $pdo->prepare("UPDATE tickets SET updated_at = NOW() WHERE id = ?");
+        $stmt->execute([$ticket_id]);
+
         // Insert the new response
         $stmt = $pdo->prepare("INSERT INTO responses (ticket_id, response, created_at) VALUES (?, ?, NOW())");
         $stmt->execute([$ticket_id, $responseText]);

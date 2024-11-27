@@ -138,7 +138,7 @@ try {
             $pdo->commit();
             $response['messages'][] = 'Ticket re-opened and moved to tickets with associated responses.';
         } else {
-            // Update the status and updated_at in the tickets table for open, in-progress, and awaiting-response statuses
+            // Only update status and updated_at timestamp
             $stmt = $pdo->prepare("UPDATE tickets SET status = ?, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$status, $ticket_id]);
 
