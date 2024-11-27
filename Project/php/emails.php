@@ -251,24 +251,46 @@ class MailHandler {
             $this->mailer->addAddress($userEmail);
             $this->mailer->Subject = "Welcome to Turing Tickets Admin Panel";
             
-            // Get the base URL dynamically
-            $baseUrl = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https://" : "http://";
-            $baseUrl .= $_SERVER['HTTP_HOST'];
-            $baseUrl .= dirname(dirname($_SERVER['PHP_SELF']));
-            
-            $resetUrl = $baseUrl . "/html/reset_password.html";
+            $resetUrl = "https://turing.cs.olemiss.edu/~jgcarpe2/CS487/Project/Project/html/reset_password.html";
             
             $content = "
                 <h2>Welcome to Turing Tickets!</h2>
                 <p>Your admin account has been created successfully.</p>
                 <p><strong>Username:</strong> $username</p>
                 <p><strong>Temporary Password:</strong> $password</p>
-                <p>For security reasons, please change your password immediately by clicking the link below:</p>
-                <p><a href='$resetUrl' style='display: inline-block; background-color: #83C5E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;'>Reset Password</a></p>
-                <p style='color: #ff0000;'><strong>Important:</strong> Please change your password immediately for security purposes.</p>";
+                <p>For security reasons, please change your password immediately using the link below:</p>
+                <table width='100%' cellspacing='0' cellpadding='0'>
+                    <tr>
+                        <td align='center' style='padding: 20px;'>
+                            <table cellspacing='0' cellpadding='0'>
+                                <tr>
+                                    <td style='background-color: #83C5E5; border-radius: 4px; padding: 12px 25px;'>
+                                        <a href='$resetUrl' 
+                                           target='_blank'
+                                           style='color: #FFFFFF; 
+                                                  font-family: Arial, sans-serif; 
+                                                  font-size: 16px; 
+                                                  font-weight: bold; 
+                                                  text-decoration: none; 
+                                                  display: inline-block;'>
+                                            Reset Password
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <p style='color: #ff0000; text-align: center;'>
+                    <strong>Important:</strong> Please change your password immediately for security purposes.
+                </p>
+                <p style='text-align: center;'>
+                    If the button above doesn't work, copy and paste this link into your browser:<br>
+                    <a href='$resetUrl'>$resetUrl</a>
+                </p>";
             
             $this->mailer->Body = $this->getEmailTemplate($content);
-            $this->mailer->AltBody = strip_tags(str_replace(['<br>', '</p>'], "\n", $content));
+            $this->mailer->AltBody = strip_tags(str_replace(['<br>', '</p>'], "\n", $content)) . "\n\nReset your password at: $resetUrl";
             
             return $this->sendEmail();
         } catch (Exception $e) {
