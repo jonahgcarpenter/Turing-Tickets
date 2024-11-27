@@ -25,7 +25,7 @@ function fetchNotes($pdo, $ticketId, $isClosed = false) {
                               LEFT JOIN users u ON r.admin_id = u.id 
                               WHERE r.ticket_id = :ticket_id 
                               AND u.role = 'admin'
-                              ORDER BY r.created_at DESC");
+                              ORDER BY r.created_at ASC");
         $stmt->execute([':ticket_id' => $ticketId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
