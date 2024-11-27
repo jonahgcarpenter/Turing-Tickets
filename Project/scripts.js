@@ -70,13 +70,25 @@ if (submitButton) {
     });
 }
 
-// Define the loadAdminTable function
+// Add this function near the top of the file
+function handleUnauthorizedResponse(response) {
+    if (response.redirect) {
+        alert(response.message);
+        window.location.href = response.redirectUrl;
+        return true;
+    }
+    return false;
+}
+
+// Modify the loadAdminTable function
 async function loadAdminTable() {
     try {
         const response = await fetch('../php/fetch_admins.php', {
             method: 'GET'
         });
         const result = await response.json();
+
+        if (handleUnauthorizedResponse(result)) return;
 
         if (result.success) {
             const adminTableBody = document.getElementById('adminTableBody');
@@ -141,6 +153,8 @@ if (addAdminForm) {
             });
             const result = await response.json();
 
+            if (handleUnauthorizedResponse(result)) return;
+
             if (result.success) {
                 alert("Admin added successfully!");
                 addAdminToTable(result.admin); // Add the new admin to the table without reloading
@@ -200,6 +214,8 @@ async function confirmDelete(adminId) {
                 body: new URLSearchParams({ id: adminId })
             });
             const result = await response.json();
+
+            if (handleUnauthorizedResponse(result)) return;
 
             if (result.success) {
                 alert(result.message);
@@ -296,6 +312,14 @@ async function populateTicketTable() {
 
         const response = await fetch(url);
         const data = await response.json();
+
+        // Handle redirect if unauthorized
+        if (data.redirect) {
+            alert(data.message);
+            window.location.href = data.redirectUrl;
+            return;
+        }
+
         console.log("Received data:", data); // Debug log
 
         if (!data.error) {
@@ -494,3 +518,49 @@ function formatDateTime(dateTimeStr) {
     
     return new Intl.DateTimeFormat('en-US', options).format(dateObj);
 }
+
+// Remove both existing DOMContentLoaded event listeners for admin username
+// and replace with this single one at the end of the file:
+document.addEventListener("DOMContentLoaded", async () => {
+    const adminUsernameElement = document.getElementById('admin-username');
+    if (adminUsernameElement) {
+        try {
+            const response = await fetch('../auth/admin_dash_check.php', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            // First check if response is ok
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const text = await response.text();
+            console.log('Raw server response:', text); // Debug log
+            
+            try {
+                const data = JSON.parse(text);
+                console.log('Parsed data:', data); // Debug log
+                if (data.success && data.username) {
+                    adminUsernameElement.textContent = data.username;
+                } else if (data.redirect) {
+                    window.location.href = data.redirectUrl;
+                }
+            } catch (parseError) {
+                console.error("Error parsing response:", text);
+                adminUsernameElement.textContent = 'Admin';
+            }
+        } catch (error) {
+            console.error("Error fetching admin username:", error);
+            adminUsernameElement.textContent = 'Admin';
+        }
+    }
+    
+    // Call populateTicketTable if we're on the dashboard
+    if (document.getElementById('ticketTableBody')) {
+        populateTicketTable();
+    }
+});
+
+// ...existing code...

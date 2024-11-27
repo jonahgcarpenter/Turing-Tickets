@@ -1,10 +1,19 @@
 <?php
-require_once('../config/database.php');
-session_start(); // Add this line at the top
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
 
-// Check if admin is logged in
+require_once('../config/database.php');
+session_start();
+
+// Enhanced session check with redirect information
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    echo json_encode(['error' => 'Unauthorized access']);
+    header('Content-Type: application/json');
+    echo json_encode([
+        'error' => 'Unauthorized access',
+        'redirect' => true,
+        'redirectUrl' => '../html/admin_login.html',
+        'message' => 'Please login first!'
+    ]);
     exit();
 }
 

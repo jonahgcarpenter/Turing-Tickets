@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="../styles.css">
+    <style>
+        .logout-button {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .logout-button:hover::after {
+            content: 'Logout';
+            position: absolute;
+            color: red;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -20px;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body>
 
@@ -14,7 +30,9 @@
     <!-- Button Container -->
     <div class="button-container">
         <!-- Logout Button -->
-        <button onclick="window.location.href='../auth/logout.php'" class="dash-button">Logout</button>
+        <button id="logout-btn" onclick="window.location.href='../auth/logout.php'" class="dash-button logout-button">
+            <span id="admin-username">Loading...</span>
+        </button>
 
         <!-- Add Admin Button -->
         <button onclick="window.location.href='add_admin.html'" class="dash-button">Add Admin</button>

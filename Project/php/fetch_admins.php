@@ -1,14 +1,17 @@
 <?php
 require_once('../config/database.php');
 session_start();
+header('Content-Type: application/json');
 
-// Check if admin is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    echo json_encode(['error' => 'Unauthorized access']);
+    echo json_encode([
+        'error' => 'Unauthorized access',
+        'redirect' => true,
+        'redirectUrl' => '../html/admin_login.html',
+        'message' => 'Please login first!'
+    ]);
     exit();
 }
-
-header('Content-Type: application/json');
 
 try {
     $pdo = Database::dbConnect();
