@@ -68,18 +68,14 @@ class MailHandler {
     }
 
     private function getEmailTemplate($content) {
-        return "
-        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-            <div style='background-color: #003366; padding: 20px; text-align: center;'>
-                <h1 style='color: white; margin: 0;'>Turing Tickets Support</h1>
-            </div>
-            <div style='padding: 20px; background-color: #f5f5f5;'>
-                $content
-            </div>
-            <div style='padding: 20px; background-color: #eee; font-size: 12px; text-align: center;'>
-                <p>This is an automated message. Please do not reply directly to this email.</p>
-            </div>
-        </div>";
+        return "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto'>"
+             . "<div style='background:#003366;padding:15px;text-align:center'>"
+             . "<h1 style='color:white;margin:0;font-size:20px'>Turing Tickets Support</h1>"
+             . "</div>"
+             . "<div style='padding:15px;background:#f5f5f5'>$content</div>"
+             . "<div style='padding:10px;background:#eee;font-size:11px;text-align:center'>"
+             . "<p style='margin:0'>Automated message - Do not reply</p>"
+             . "</div></div>";
     }
 
     private function sendEmail() {
@@ -253,33 +249,28 @@ class MailHandler {
             
             $resetUrl = "https://turing.cs.olemiss.edu/~jgcarpe2/CS487/Project/Project/html/reset_password.html";
             
-            $content = "
-                <h2>Welcome to Turing Tickets!</h2>
-                <p>Your admin account has been created successfully.</p>
-                <p><strong>Username:</strong> $username</p>
-                <p><strong>Temporary Password:</strong> $password</p>
-                <p>For security reasons, please change your password immediately.</p>
-                <div style='text-align: center; padding: 20px;'>
-                    <a href='$resetUrl' 
-                       style='background-color: #83C5E5;
-                              color: #ffffff;
-                              padding: 10px 20px;
-                              text-decoration: none;
-                              font-weight: bold;
-                              border-radius: 5px;'>
-                        Reset Password
-                    </a>
-                </div>
-                <p style='color: #ff0000; text-align: center;'>
-                    <strong>Important:</strong> Please change your password immediately for security purposes.
-                </p>
-                <p style='text-align: center; color: #666666;'>
-                    If the button doesn't work, copy and paste this link:<br>
-                    <a href='$resetUrl'>$resetUrl</a>
-                </p>";
+            $content = "<h2 style='margin-top:0'>Welcome to Turing Tickets!</h2>"
+                    . "<p><strong>Username:</strong> $username<br>"
+                    . "<strong>Temporary Password:</strong> $password</p>"
+                    . "<table width='100%' cellspacing='0' cellpadding='0'><tr>"
+                    . "<td align='center' style='padding:15px'>"
+                    . "<table cellspacing='0' cellpadding='0'><tr>"
+                    . "<td align='center' bgcolor='#83C5E5' style='border-radius:5px'>"
+                    . "<a href='$resetUrl' target='_blank' "
+                    . "style='display:inline-block;padding:12px 25px;color:#ffffff;"
+                    . "text-decoration:none;font-weight:bold;border:1px solid #73b5d5;"
+                    . "border-radius:5px'>Reset Password</a>"
+                    . "</td></tr></table></td></tr></table>"
+                    . "<p style='color:#ff0000;text-align:center'>"
+                    . "<strong>Important:</strong> Change password immediately</p>"
+                    . "<p style='color:#666666;font-size:12px;text-align:center'>"
+                    . "Can't click? Copy: $resetUrl</p>";
             
             $this->mailer->Body = $this->getEmailTemplate($content);
-            $this->mailer->AltBody = strip_tags(str_replace(['<br>', '</p>'], "\n", $content)) . "\n\nReset your password at: $resetUrl";
+            $this->mailer->AltBody = "Welcome to Turing Tickets!\n\n"
+                                  . "Username: $username\n"
+                                  . "Temporary Password: $password\n\n"
+                                  . "Reset your password at: $resetUrl";
             
             return $this->sendEmail();
         } catch (Exception $e) {
