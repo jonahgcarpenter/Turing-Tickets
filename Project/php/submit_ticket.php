@@ -26,6 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo = Database::dbConnect();
         $pdo->beginTransaction();
 
+        // Update mailer initialization with database connection
+        $mailHandler = new MailHandler($pdo);
+
         $stmt = $pdo->prepare('INSERT INTO tickets (title, name, email, category, description, status) VALUES (:title, :name, :email, :category, :description, "open")');
         $stmt->execute([
             ':title' => $title,
@@ -38,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ticketId = $pdo->lastInsertId();
         
         // Send email notification before committing transaction
-        $mailHandler = new MailHandler();
         $ticketDetails = [
             'id' => $ticketId,
             'subject' => $title,

@@ -41,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $newAdminId = $pdo->lastInsertId();
 
-        // Send welcome email with credentials
-        $mailHandler = new MailHandler();
+        // Update mailer initialization with database connection
+        $mailHandler = new MailHandler($pdo);
         $emailSent = $mailHandler->sendAdminWelcomeEmail($email, $username, $password);
 
         if (!$emailSent) {

@@ -1,12 +1,14 @@
 <?php
 require_once('../config/database.php');
 require_once('emails.php');
+session_start(); // Add session start
 
 header('Content-Type: application/json');
 $response = ['success' => true, 'messages' => []];
 
 try {
     $pdo = Database::dbConnect();
+    $mailer = new MailHandler($pdo);  // Update mailer initialization
 } catch (PDOException $e) {
     $response['success'] = false;
     $response['messages'][] = 'Database connection failed: ' . $e->getMessage();
@@ -38,16 +40,26 @@ if (!in_array($status, $valid_statuses)) {
 }
 
 try {
-    $mailer = new MailHandler();
     $pdo->beginTransaction();
     
-    // Get user email and current status before any changes
+    // Get complete ticket data and admin username
     $stmt = $pdo->prepare("
-        SELECT email, status FROM tickets WHERE id = ? 
-        UNION 
-        SELECT email, status FROM closed_tickets WHERE id = ?
+        SELECT t.*, u.username as admin_username, 
+               (SELECT GROUP_CONCAT(r.response ORDER BY r.created_at DESC SEPARATOR '---')
+                FROM responses r 
+                WHERE r.ticket_id = t.id) as notes
+        FROM (
+            SELECT id, title, name, email, category, description, status, created_at, updated_at
+            FROM tickets 
+            WHERE id = ?
+            UNION ALL
+            SELECT id, title, name, email, category, description, status, created_at, updated_at
+            FROM closed_tickets 
+            WHERE id = ?
+        ) t
+        LEFT JOIN users u ON u.id = ?
     ");
-    $stmt->execute([$ticket_id, $ticket_id]);
+    $stmt->execute([$ticket_id, $ticket_id, $_SESSION['admin_id']]);
     $ticketData = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$ticketData) {
@@ -56,6 +68,7 @@ try {
 
     $userEmail = $ticketData['email'];
     $currentStatus = $ticketData['status'];
+    $adminUsername = $ticketData['admin_username'];
 
     // Only proceed with status update if the status has actually changed
     if ($status === $currentStatus) {
@@ -146,7 +159,13 @@ try {
         }
         
         if ($status !== $currentStatus) {
-            $emailSent = $mailer->sendStatusChangeNotification($userEmail, $ticket_id, $status);
+            $emailSent = $mailer->sendStatusChangeNotification(
+                $userEmail, 
+                $ticket_id, 
+                $status,
+                $ticketData,
+                $adminUsername
+            );
         }
         
         if ($pdo->inTransaction()) {
