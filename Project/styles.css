@@ -146,6 +146,22 @@ footer {
       padding: 7px;
       font-size: 0.9em;
   }
+
+  #table-wrapper {
+    margin: 0 -15px; /* Negative margin to allow full-width scrolling */
+    padding: 0 15px; /* Add padding back to content */
+    width: calc(100% + 30px); /* Compensate for negative margins */
+  }
+
+  #dashboard-table {
+    min-width: 600px; /* Ensure minimum width to prevent squishing */
+  }
+
+  #admin-table-wrapper {
+    margin: 0 -15px;
+    padding: 0 15px;
+    width: calc(100% + 30px);
+  }
 }
 
 /* Tickets Controls Container */
@@ -210,6 +226,7 @@ footer {
 #table-wrapper {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
 }
 
@@ -278,12 +295,13 @@ footer {
 
 /* Add Admin */
 #adminUsersContainer {
+  max-width: 450px; /* Match container max-width */
   margin: 20px auto;
   padding: 20px;
   background-color: var(--accent-color);
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 2%; /* Offset to lower the container */
+  margin-top: 2%;
 }
 
 /* Delete Admin */
@@ -406,4 +424,27 @@ footer {
 #dashboard-table td:last-child {
     text-align: right;
     width: 60px; /* Fixed width for action column */
+}
+
+/* Admin table wrapper */
+#admin-table-wrapper {
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 15px;
+  border-radius: 8px;
+  max-width: 100%; /* Ensure table wrapper doesn't exceed container width */
+}
+
+/* Adjust table layout for admin table to prevent overflow */
+#adminUsersContainer #dashboard-table {
+  min-width: unset; /* Remove minimum width constraint */
+  table-layout: fixed; /* Force table to respect container width */
+  width: 100%;
+}
+
+#adminUsersContainer #dashboard-table td {
+  word-wrap: break-word; /* Allow text to wrap within cells */
+  overflow-wrap: break-word;
 }
