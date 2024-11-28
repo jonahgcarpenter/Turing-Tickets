@@ -14,7 +14,9 @@
     <!-- Button Container -->
     <div class="button-container">
         <!-- Logout Button -->
-        <button onclick="window.location.href='../auth/logout.php'" class="dash-button">Logout</button>
+        <button id="logout-btn" onclick="window.location.href='../auth/logout.php'" class="dash-button logout-button">
+            Logged In As: <span id="admin-username">Loading...</span>
+        </button>
 
         <!-- Add Admin Button -->
         <button onclick="window.location.href='add_admin.html'" class="dash-button">Add Admin</button>
@@ -39,8 +41,8 @@
             <select id="filter-status" class="control-select">
                 <option value="all">All</option>
                 <option value="open">Open</option>
-                <option value="in_progress">In Progress</option>
-                <option value="awaiting_response">Awaiting Response</option>
+                <option value="in-progress">In Progress</option>
+                <option value="awaiting-response">Awaiting Response</option>
                 <option value="closed">Closed</option>
             </select>
         </div>
@@ -63,7 +65,39 @@
                     <td>Loading</td><td>...</td> <!-- Main ticket row -->
                 </tr>
                 <tr class="expandable-row"> <!-- Expandable content row, initially hidden -->
-                    <td colspan="6">Expanded content here...</td>
+                    <td colspan="6">
+                        <div class="expanded-content">
+                            <div class="ticket-metadata">
+                                <div class="metadata-item">
+                                    <span class="expanded-content-label">Created At:</span>
+                                    <span class="expanded-content-value creation-time">Date</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="expanded-content-label">Last Updated:</span>
+                                    <span class="expanded-content-value">Date</span>
+                                </div>
+                            </div>
+                            
+                            <div class="expanded-content-section">
+                                <h3>Ticket Details</h3>
+                                <div class="expanded-content-value">
+                                    <strong>Created By:</strong> <span class="expanded-content-value">User Email</span><br>
+                                    <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'}<br>
+                                    <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="expanded-content-section">
+                                <h3>Description</h3>
+                                <div class="expanded-content-value">Ticket description here...</div>
+                            </div>
+                            
+                            <div class="expanded-content-section">
+                                <h3>Notes History</h3>
+                                <div class="expanded-content-value">Notes timeline here...</div>
+                            </div>
+                        </div>
+                    </td>
                 </tr>
             </tbody>            
         </table>

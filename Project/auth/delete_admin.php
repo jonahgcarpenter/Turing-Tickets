@@ -1,7 +1,17 @@
 <?php
 require_once('../config/database.php');
-
+session_start();
 header('Content-Type: application/json');
+
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    echo json_encode([
+        'error' => 'Unauthorized access',
+        'redirect' => true,
+        'redirectUrl' => '../html/admin_login.html',
+        'message' => 'Please login first!'
+    ]);
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $adminId = $_POST['id'] ?? null;

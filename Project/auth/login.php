@@ -1,5 +1,12 @@
 <?php
 require_once('../config/database.php');
+session_start();
+
+// Redirect if already logged in
+if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+    header('Location: ../html/admin_dashboard.html');
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
@@ -17,13 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             session_start();
             $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
+            $_SESSION['admin_username'] = $user['username'];  // Changed from 'username' to 'admin_username'
 
-            // Output success alert with redirect to admin dashboard
+            error_log('Login successful - Session data: ' . print_r($_SESSION, true)); // Debug log
+            
+            // Keep the original redirect behavior
             echo "<script>
                 alert('Login successful!');
                 window.location.href = '../html/admin_dashboard.html';
             </script>";
+            exit();
         } else {
             // Output error alert with redirect back to login page
             echo "<script>

@@ -70,20 +70,51 @@ if (submitButton) {
     });
 }
 
-// Define the loadAdminTable function
+// Add this function near the top of the file
+function handleUnauthorizedResponse(response) {
+    if (response.redirect) {
+        alert(response.message);
+        window.location.href = response.redirectUrl;
+        return true;
+    }
+    return false;
+}
+
+// Add email click handler function
+function addEmailClickHandler(emailCell) {
+    emailCell.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Toggle the expanded class
+        this.classList.toggle('expanded');
+        
+        // Prevent the click from bubbling up to parent elements
+        return false;
+    });
+}
+
+// Modify the loadAdminTable function
 async function loadAdminTable() {
+    const adminTableBody = document.getElementById('adminTableBody');
+    if (!adminTableBody) return;
+
+    // Show loading state
+    adminTableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Loading...</td></tr>';
+
     try {
         const response = await fetch('../php/fetch_admins.php', {
             method: 'GET'
         });
         const result = await response.json();
 
+        if (handleUnauthorizedResponse(result)) return;
+
         if (result.success) {
-            const adminTableBody = document.getElementById('adminTableBody');
-            adminTableBody.innerHTML = ''; // Clear any existing rows
+            adminTableBody.innerHTML = ''; // Clear loading message
 
             result.admins.forEach(admin => {
-                console.log("Loaded admin with ID:", admin.id); // Log the ID to verify it is present
+                console.log("Loaded admin with ID:", admin.id);
                 const row = document.createElement('tr');
                 row.setAttribute('data-id', admin.id);
 
@@ -92,16 +123,22 @@ async function loadAdminTable() {
                 usernameCell.textContent = admin.username;
                 row.appendChild(usernameCell);
 
-                // Email cell
+                // Email cell with proper class
                 const emailCell = document.createElement('td');
+                emailCell.classList.add('email-cell'); // Add this class consistently
                 emailCell.textContent = admin.email;
+                addEmailClickHandler(emailCell);
                 row.appendChild(emailCell);
 
                 // Action cell with delete button
                 const actionCell = document.createElement('td');
+                actionCell.style.textAlign = 'right !important';
                 const deleteButton = document.createElement('button');
-                deleteButton.textContent = ' ';
                 deleteButton.classList.add('delete-btn');
+                deleteButton.setAttribute('aria-label', 'Delete');
+                const trashIcon = document.createElement('i');
+                trashIcon.classList.add('fas', 'fa-trash-alt');
+                deleteButton.appendChild(trashIcon);
                 deleteButton.onclick = () => confirmDelete(admin.id);
                 actionCell.appendChild(deleteButton);
                 row.appendChild(actionCell);
@@ -109,10 +146,12 @@ async function loadAdminTable() {
                 adminTableBody.appendChild(row);
             });
         } else {
-            alert(result.error);
+            adminTableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error loading admins</td></tr>';
+            if (result.error) alert(result.error);
         }
     } catch (error) {
         console.error("Error loading admin data:", error);
+        adminTableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error loading admins</td></tr>';
         alert("An unexpected error occurred while loading admin data.");
     }
 }
@@ -137,10 +176,15 @@ if (addAdminForm) {
             });
             const result = await response.json();
 
+            if (handleUnauthorizedResponse(result)) return;
+
             if (result.success) {
-                alert("Admin added successfully!");
-                addAdminToTable(result.admin); // Add the new admin to the table without reloading
-                addAdminForm.reset(); // Clear the form after success
+                const emailMsg = result.emailSent 
+                    ? "Login credentials have been sent to the admin's email address."
+                    : "Admin added successfully, but there was an issue sending the welcome email.";
+                alert("Admin added successfully! " + emailMsg);
+                addAdminToTable(result.admin);
+                addAdminForm.reset();
             } else {
                 alert(result.error);
             }
@@ -154,25 +198,32 @@ if (addAdminForm) {
 // Function to add a new admin row to the admin table dynamically
 function addAdminToTable(admin) {
     const adminTableBody = document.getElementById("adminTableBody");
-
     const row = document.createElement("tr");
-    row.setAttribute('data-id', admin.id); // Set data-id attribute for row
+    row.setAttribute('data-id', admin.id);
 
-    // Username cell
+    // Username cell with explicit left alignment
     const usernameCell = document.createElement("td");
+    usernameCell.style.textAlign = 'left';
     usernameCell.textContent = admin.username;
     row.appendChild(usernameCell);
 
-    // Email cell
+    // Email cell with explicit left alignment
     const emailCell = document.createElement("td");
+    emailCell.style.textAlign = 'left';
+    emailCell.classList.add("email-cell");
     emailCell.textContent = admin.email;
+    addEmailClickHandler(emailCell);
     row.appendChild(emailCell);
 
-    // Action cell with delete button
+    // Action cell with explicit right alignment
     const actionCell = document.createElement("td");
+    actionCell.style.textAlign = 'right !important';
     const deleteButton = document.createElement("button");
-    deleteButton.textContent = " ";
     deleteButton.classList.add("delete-btn");
+    deleteButton.setAttribute('aria-label', 'Delete');
+    const icon = document.createElement("i");
+    icon.classList.add("fas", "fa-trash-alt");
+    deleteButton.appendChild(icon);
     deleteButton.onclick = () => confirmDelete(admin.id);
     actionCell.appendChild(deleteButton);
     row.appendChild(actionCell);
@@ -193,6 +244,8 @@ async function confirmDelete(adminId) {
                 body: new URLSearchParams({ id: adminId })
             });
             const result = await response.json();
+
+            if (handleUnauthorizedResponse(result)) return;
 
             if (result.success) {
                 alert(result.message);
@@ -263,40 +316,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function populateTicketTable() {
     try {
-        // Get filter, sort, and search input values
         const searchInput = document.getElementById("search-ticket").value.trim();
         const sortOption = document.getElementById("sort-tickets").value;
         const filterOption = document.getElementById("filter-status").value;
 
-        // Construct query parameters dynamically
         const params = new URLSearchParams();
 
-        // Add filterOption only if it's not "all"
+        // Handle filter option
         if (filterOption && filterOption !== "all") {
-            params.append("filterOption", filterOption); // Automatically encodes filterOption
+            params.append("filterOption", filterOption);
         }
 
+        // Handle sort option
         if (sortOption) {
             params.append("sort", sortOption);
         }
 
+        // Handle search
         if (searchInput) {
             params.append("ticket_id", searchInput);
         }
 
-        // Build the full URL with query parameters
         const url = `${BASE_API_URL}?${params.toString()}`;
-        console.log("Constructed URL:", url);
+        console.log("Fetching tickets with URL:", url); // Debug log
 
-        // Fetch ticket data from the backend
         const response = await fetch(url);
         const data = await response.json();
 
+        // Handle redirect if unauthorized
+        if (data.redirect) {
+            alert(data.message);
+            window.location.href = data.redirectUrl;
+            return;
+        }
+
+        console.log("Received data:", data); // Debug log
+
         if (!data.error) {
             const ticketTableBody = document.getElementById("ticketTableBody");
-            ticketTableBody.innerHTML = ""; // Clear existing rows
-
-            // Populate the table with filtered and sorted tickets directly from the backend
+            ticketTableBody.innerHTML = "";
             data.forEach(addRow);
         } else {
             console.error("Failed to fetch tickets:", data.error);
@@ -309,151 +367,151 @@ async function populateTicketTable() {
 // Function to add rows dynamically with expand-on-click functionality
 function addRow(ticketData) {
     const ticketTableBody = document.getElementById("ticketTableBody");
-
-    // Create the main row for ticket data
     const mainRow = document.createElement("tr");
-    mainRow.classList.add("main-row");
+    mainRow.classList.add("main-row", `status-${ticketData.status}`);
     
-    // Limit the note content to 10 characters
     const truncatedContent = ticketData.notes && ticketData.notes.length > 0
-        ? ticketData.notes[0].content.slice(0, 10) // Show only the first 10 characters
+        ? ticketData.notes[0].content.slice(0, 10) + "..."
         : 'No Responses';
 
+    // Explicitly set text-align for each cell
     mainRow.innerHTML = `
-        <td>${ticketData.id}</td>
-        <td>${formatDateTime(ticketData.updated)}</td>
-        <td>${ticketData.request_type || 'N/A'}</td>
-        <td>${ticketData.request_title || 'N/A'}</td>
-        <td>${truncatedContent}</td>
-        <td>${ticketData.status}</td>
+        <td style="text-align: left !important">${ticketData.id}</td>
+        <td style="text-align: left !important">${formatDateTime(ticketData.created_at)}</td>
+        <td style="text-align: left !important">${ticketData.request_type || 'N/A'}</td>
+        <td style="text-align: left !important">${ticketData.request_title || 'N/A'}</td>
+        <td style="text-align: left !important">${truncatedContent}</td>
+        <td style="text-align: left !important">${ticketData.status}</td>
     `;
 
-    // Add click event to toggle expansion of the associated row
     mainRow.addEventListener("click", () => toggleExpand(mainRow));
 
-    // Create expandable row for additional details from both ticket tables
+    // Create expandable row with new structured content
     const expandableRow = document.createElement("tr");
     expandableRow.classList.add("expandable-row");
     expandableRow.innerHTML = `
-        <td colspan="6">
-            <strong>Ticket ID:</strong> ${ticketData.id} <br>
-            <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'} <br>
-            <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'} <br>
-            <strong>Status:</strong> ${ticketData.status} <br>
-            <strong>Created:</strong> ${formatDateTime(ticketData.updated)} <br>
-            <strong>Notes:</strong>
-            <ul>
-                ${ticketData.notes.map(note => `<li>${note.content} (Created: ${formatDateTime(note.created_at)})</li>`).join('')}
-            </ul>
-            <div style="margin-top: 1em;">
-                <label for="status-update-${ticketData.id}"><strong>Update Status:</strong></label>
-                <select id="status-update-${ticketData.id}">
-                    <option value="open">Open</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="awaiting-response">Awaiting Response</option>
-                    <option value="closed">Closed</option>
-                </select>
+        <td colspan="6" style="text-align: left">
+            <div class="expanded-content" style="text-align: left">
+                <div class="ticket-metadata">
+                    <div class="metadata-item">
+                        <span class="expanded-content-label">Created At:</span>
+                        <span class="expanded-content-value">${formatDateTime(ticketData.created_at)}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="expanded-content-label">Last Updated:</span>
+                        <span class="expanded-content-value">${formatDateTime(ticketData.updated_at)}</span>
+                    </div>
+                </div>
+
+                <div class="expanded-content-section">
+                    <h3>Ticket Details</h3>
+                    <div class="expanded-content-value">
+                        <strong>Name:</strong> ${ticketData.name || 'N/A'}<br>
+                        <strong>Email:</strong> ${ticketData.email || 'N/A'}<br>
+                        <strong>Request Title:</strong> ${ticketData.request_title || 'N/A'}<br>
+                        <strong>Request Type:</strong> ${ticketData.request_type || 'N/A'}
+                    </div>
+                </div>
+
+                <div class="expanded-content-section">
+                    <h3>Initial Description</h3>
+                    <div class="note-container">
+                        <div class="note-content">${ticketData.description || 'No initial description provided'}</div>
+                        <div class="note-metadata">Created by: ${ticketData.email || 'Unknown'} on ${formatDateTime(ticketData.created_at)}</div>
+                    </div>
+                </div>
+
+                <div class="expanded-content-section">
+                    <h3>Notes History</h3>
+                    <div class="expanded-content-value">
+                        ${ticketData.notes.map(note => 
+                            `<div class="note-container">
+                                <div class="note-content">${note.content}</div>
+                                <div class="note-metadata">Created by: ${note.admin_username || 'System'} on ${formatDateTime(note.created_at)}</div>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+
+                <div class="expanded-content-section">
+                    <h3>Update Ticket</h3>
+                    <div style="display: grid; gap: 15px;">
+                        <div>
+                            <label class="expanded-content-label" for="status-update-${ticketData.id}">Update Status:</label>
+                            <select id="status-update-${ticketData.id}" class="control-select">
+                                <option value="open" ${ticketData.status === 'open' ? 'selected' : ''}>Open</option>
+                                <option value="in-progress" ${ticketData.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
+                                <option value="awaiting-response" ${ticketData.status === 'awaiting-response' ? 'selected' : ''}>Awaiting Response</option>
+                                <option value="closed" ${ticketData.status === 'closed' ? 'selected' : ''}>Closed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="expanded-content-label" for="add-response-${ticketData.id}">Add Response:</label>
+                            <textarea id="add-response-${ticketData.id}" rows="3" class="control-input" style="width: 100%;"></textarea>
+                        </div>
+                        <button id="save-changes-${ticketData.id}" class="dash-button">Save Changes</button>
+                    </div>
+                </div>
             </div>
-            <div style="margin-top: 1em;">
-                <label for="add-response-${ticketData.id}"><strong>Add Response:</strong></label><br>
-                <textarea id="add-response-${ticketData.id}" rows="3" style="width: 100%;"></textarea>
-            </div>
-            <button id="save-changes-${ticketData.id}" style="margin-top: 1em;">Save Changes</button>
         </td>
     `;
-    expandableRow.style.display = "none"; // Hide initially
 
-    // Add event listener for the save changes button
+    // Rest of the event listener code remains the same
     expandableRow.addEventListener("click", (event) => {
-    if (event.target && event.target.id === `save-changes-${ticketData.id}`) {
-        const updatedStatus = document.getElementById(`status-update-${ticketData.id}`).value;
-        const newResponse = document.getElementById(`add-response-${ticketData.id}`).value;
+        if (event.target && event.target.id === `save-changes-${ticketData.id}`) {
+            const updatedStatus = document.getElementById(`status-update-${ticketData.id}`).value;
+            const newResponse = document.getElementById(`add-response-${ticketData.id}`).value;
 
-        console.log(`Ticket ID: ${ticketData.id}`);
-        console.log(`Updated Status: ${updatedStatus}`);
-        console.log(`New Response: ${newResponse}`);
+            const statusPromise = updatedStatus ? 
+                fetch('../php/update_status.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ticket_id: ticketData.id,
+                        status: updatedStatus
+                    }),
+                }).then(response => response.json()) : 
+                Promise.resolve({ success: true });
 
-        // Flags to track completion of async operations
-        let statusUpdated = !updatedStatus; // Skip if no status to update
-        let responseAdded = newResponse.trim() === ""; // Skip if no response to add
+            const responsePromise = newResponse.trim() ? 
+                fetch('../php/add_response.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ticket_id: ticketData.id,
+                        response: newResponse
+                    }),
+                }).then(response => response.json()) : 
+                Promise.resolve({ success: true });
 
-        // Function to check if both operations are complete and refresh the page
-        const checkAndRefresh = () => {
-            if (statusUpdated && responseAdded) {
-                window.location.reload();
-            }
-        };
-
-        // Make POST request to update_status.php if updatedStatus is provided
-        if (updatedStatus) {
-            fetch('../php/update_status.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ticket_id: ticketData.id,
-                    status: updatedStatus
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Status updated successfully!');
-                    console.log('Status updated successfully:', data.message);
-                } else {
-                    alert(`Failed to update status: ${data.message}`);
-                    console.error('Failed to update status:', data.message);
-                }
-                statusUpdated = true;
-                checkAndRefresh();
-            })
-            .catch(error => {
-                alert('An error occurred while updating the status. Please try again.');
-                console.error('Error updating status:', error);
-                statusUpdated = true; // Allow refresh even on error
-                checkAndRefresh();
-            });
+            Promise.all([statusPromise, responsePromise])
+                .then(([statusResult, responseResult]) => {
+                    let messages = [];
+                    if (statusResult.message) messages.push(statusResult.message);
+                    if (responseResult.message) messages.push(responseResult.message);
+                    
+                    if (statusResult.success && responseResult.success) {
+                        if (messages.length > 0) {
+                            alert(messages.join('\n'));
+                        }
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + messages.join('\n'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An unexpected error occurred. Please try again.');
+                });
         }
+    });
 
-        // Make POST request to add_response.php if newResponse is provided
-        if (newResponse.trim() !== "") {
-            fetch('../php/add_response.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ticket_id: ticketData.id,
-                    response: newResponse
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Response added successfully!');
-                    console.log('Response added successfully:', data.message);
-                } else {
-                    alert(`Failed to add response: ${data.message}`);
-                    console.error('Failed to add response:', data.message);
-                }
-                responseAdded = true;
-                checkAndRefresh();
-            })
-            .catch(error => {
-                alert('An error occurred while adding the response. Please try again.');
-                console.error('Error adding response:', error);
-                responseAdded = true; // Allow refresh even on error
-                checkAndRefresh();
-            });
-        }
-    }
-});
-
-    // Append both rows to the table body
     ticketTableBody.appendChild(mainRow);
     ticketTableBody.appendChild(expandableRow);
-
 }
 
 // Function to toggle row expansion
@@ -472,10 +530,65 @@ function toggleExpand(row) {
 
 // Utility function to format date and time
 function formatDateTime(dateTimeStr) {
-    const dateObj = new Date(dateTimeStr);
+    if (!dateTimeStr) return 'N/A';
+    
+    const dateObj = new Date(dateTimeStr.replace(' ', 'T'));
     if (isNaN(dateObj.getTime())) return 'Invalid Date';
-    const hours = dateObj.getHours() % 12 || 12;
-    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-    const ampm = dateObj.getHours() >= 12 ? 'PM' : 'AM';
-    return `${hours}:${minutes} ${ampm} ${dateObj.getMonth() + 1}/${dateObj.getDate()}/${dateObj.getFullYear()}`;
+    
+    const options = {
+        hour: 'numeric',
+        minute: '2-digit',
+        month: 'numeric',
+        day: 'numeric',
+        year: 'numeric',
+        hour12: true
+    };
+    
+    return new Intl.DateTimeFormat('en-US', options).format(dateObj);
 }
+
+// Remove both existing DOMContentLoaded event listeners for admin username
+// and replace with this single one at the end of the file:
+document.addEventListener("DOMContentLoaded", async () => {
+    const adminUsernameElement = document.getElementById('admin-username');
+    if (adminUsernameElement) {
+        try {
+            const response = await fetch('../auth/admin_dash_check.php', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            // First check if response is ok
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const text = await response.text();
+            console.log('Raw server response:', text); // Debug log
+            
+            try {
+                const data = JSON.parse(text);
+                console.log('Parsed data:', data); // Debug log
+                if (data.success && data.username) {
+                    adminUsernameElement.textContent = data.username;
+                } else if (data.redirect) {
+                    window.location.href = data.redirectUrl;
+                }
+            } catch (parseError) {
+                console.error("Error parsing response:", text);
+                adminUsernameElement.textContent = 'Admin';
+            }
+        } catch (error) {
+            console.error("Error fetching admin username:", error);
+            adminUsernameElement.textContent = 'Admin';
+        }
+    }
+    
+    // Call populateTicketTable if we're on the dashboard
+    if (document.getElementById('ticketTableBody')) {
+        populateTicketTable();
+    }
+});
+
+// ...existing code...

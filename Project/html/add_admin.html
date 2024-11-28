@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
@@ -31,18 +32,30 @@
 
 <div class="container" id="adminUsersContainer">
   <h1>Admin Users</h1>
-  <table id="dashboard-table">
+  <div id="admin-table-wrapper">
+    <table id="dashboard-table">
       <thead>
           <tr>
               <th>Username</th>
               <th>Email</th>
-              <th>Action</th>
+              <th style="text-align: right;">Action</th>
           </tr>
       </thead>
       <tbody id="adminTableBody">
+        <!-- Example row -->
+        <tr>
+          <td>admin1</td>
+          <td class="email-cell">admin1@example.com</td>
+          <td style="text-align: right;">
+            <button class="delete-btn" aria-label="Delete">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>
+        </tr>
         <!-- Admin rows will be dynamically inserted here -->
     </tbody>
-  </table>
+    </table>
+  </div>
 </div>
 
 <script src="../scripts.js"></script>

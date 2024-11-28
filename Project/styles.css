@@ -5,6 +5,10 @@
   --background-color: #fff;
   --accent-color: #f5f5f5;
   --border-color: #ccc;
+  --status-open: #d4edda;          /* Green */
+  --status-in-progress: #cce5ff;   /* Blue */
+  --status-awaiting: #fff3cd;      /* Yellow */
+  --status-closed: #f8d7da;        /* Red */
 }
 
 /* General Styles */
@@ -25,7 +29,7 @@ body {
     padding: 15px;
     background-color: var(--accent-color);
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
     margin-top: 20vh; /* Offset to lower the container */
 }
 
@@ -61,6 +65,7 @@ textarea {
   box-sizing: border-box;
   font-size: 1em;
   margin-bottom: 10px; /* Reduced space between inputs */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow */
 }
 
 select {
@@ -84,10 +89,38 @@ button {
   width: 35%;
   margin: 0 auto;
   display: block;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
 }
 
 button:hover {
   background-color: #6bb1d4; /* Darker shade of powder blue */
+}
+
+/* Logout Button Styles */
+.logout-button {
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #dc3545; /* Red color */
+    color: transparent; /* Hide all text content */
+}
+
+.logout-button:hover * {
+    visibility: hidden; /* Hide all child elements */
+}
+
+.logout-button:hover::after {
+    content: 'Logout';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    white-space: nowrap;
+    visibility: visible; /* Make sure the 'Logout' text is visible */
 }
 
 /* Footer */
@@ -113,10 +146,25 @@ footer {
       padding: 7px;
       font-size: 0.9em;
   }
+
+  #table-wrapper {
+    margin: 0 -15px; /* Negative margin to allow full-width scrolling */
+    padding: 0 15px; /* Add padding back to content */
+    width: calc(100% + 30px); /* Compensate for negative margins */
+  }
+
+  #dashboard-table {
+    min-width: 600px; /* Ensure minimum width to prevent squishing */
+  }
+
+  #admin-table-wrapper {
+    margin: 0 -15px;
+    padding: 0 15px;
+    width: calc(100% + 30px);
+  }
 }
 
-/* ---------- Tickets Controls Container ---------- */
-/* Controls Wrapper */
+/* Tickets Controls Container */
 #controls-wrapper {
   padding: 15px;
   background-color: #f9f9f9;
@@ -127,6 +175,7 @@ footer {
   gap: 15px;
   align-items: center; /* Aligns items vertically */
   justify-content: space-between; /* Spaces out controls */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Added shadow */
 }
 
 .control-input, .control-select {
@@ -145,20 +194,20 @@ footer {
   border-radius: 4px;
   cursor: pointer;
   font-size: 1em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
 }
 
 #search-button:hover {
   background-color: #6bb1d4; /* Darker shade of powder blue */
 }
 
-/* Sort Wrapper */
 .sort-wrapper {
   display: flex;
   flex-direction: column; /* Places label above dropdown */
   align-items: flex-start;
 }
 
-/* ---------- Tickets Container ---------- */
+/* Tickets Container */
 #admin-dashboard-container {
   max-width: 80%;
   margin: 20px auto;
@@ -177,23 +226,57 @@ footer {
 #table-wrapper {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
 }
 
 #dashboard-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  background-color: var(--background-color); /* Add background color */
+  border-radius: 8px; /* Rounded corners */
+  overflow: hidden; /* Ensure rounded corners are visible */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
 }
 
 #dashboard-table th, #dashboard-table td {
   padding: 12px;
-  text-align: left;
-  border: 1px solid black; /* Adds black border around each cell */
+  border-bottom: 1px solid var(--border-color); /* Subtle border */
 }
 
 #dashboard-table th {
   background-color: var(--powder-blue);
   color: white;
+  text-transform: uppercase; /* Uppercase text */
+  letter-spacing: 0.05em; /* Slight letter spacing */
+}
+
+#dashboard-table td {
+  background-color: var(--accent-color); /* Light background for cells */
+}
+
+.main-row {
+  cursor: pointer;
+}
+
+#dashboard-table td.email-cell {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: max-width 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+#dashboard-table td.email-cell.expanded {
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+    position: relative;
+    z-index: 2;
 }
 
 #dashboard-table .ticket-number {
@@ -201,46 +284,167 @@ footer {
 }
 
 #tickets-container tr:nth-child(even) {
-  background-color: #f5f5f5; /* Alternating row colors */
+  background-color: #f9f9f9; /* Alternating row colors */
 }
 
-/* ---------- Admin Dashboard Button Container ---------- */
-/* Container for Buttons */
+/* Admin Dashboard Button Container */
 .button-container {
   display: flex;
   margin-bottom: 15px; /* Adds space below the button container */
 }
 
-/* ---------- Add Admin ---------- */
+/* Add Admin */
 #adminUsersContainer {
+  max-width: 450px; /* Match container max-width */
   margin: 20px auto;
   padding: 20px;
   background-color: var(--accent-color);
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 2%; /* Offset to lower the container */
+  margin-top: 2%;
 }
 
-/* ---------- Delete Admin ---------- */
-/* CSS for delete button */
+/* Delete Admin */
 .delete-btn {
-  background-color: red;
-  color: white;
+  background-color: #dc3545;  /* Red color for delete action */
+  color: var(--background-color);
   border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
+  font-size: 1em;
+  text-align: center;
+  padding: 8px;
+  width: auto;  /* Override the default button width */
+  margin: 0;    /* Override the default button margin */
+  display: inline-block;  /* Override the default button display */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  min-width: auto;  /* Remove any minimum width */
+  padding: 8px 12px;  /* Adjust padding to be more compact */
 }
 
 .delete-btn:hover {
-  background-color: darkred; /* Darker shade on hover */
+  background-color: #c82333;  /* Darker red on hover */
 }
 
+.dash-button {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Added shadow */
+}
+
+/* Add new styles for expanded content */
 .expandable-row {
   display: none; /* Hide by default */
 }
 
 .expandable-row.expanded {
   display: table-row; /* Show when expanded */
+}
+
+.expanded-content {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 6px;
+    margin: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.expanded-content h3 {
+    color: var(--powder-blue);
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.expanded-content-section {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: var(--accent-color);
+    border-radius: 4px;
+}
+
+.expanded-content-label {
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 5px;
+    display: block;
+}
+
+.expanded-content-value {
+    color: var(--text-color);
+    line-height: 1.4;
+}
+
+.ticket-metadata {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.metadata-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.note-container {
+    background-color: white;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.note-content {
+    margin-bottom: 6px;
+}
+
+.note-metadata {
+    font-size: 0.85em;
+    color: #666;
+}
+
+/* Status-specific row colors */
+#dashboard-table tr.status-open td {
+    background-color: var(--status-open);
+}
+
+#dashboard-table tr.status-in-progress td {
+    background-color: var(--status-in-progress);
+}
+
+#dashboard-table tr.status-awaiting-response td {
+    background-color: var(--status-awaiting);
+}
+
+#dashboard-table tr.status-closed td {
+    background-color: var(--status-closed);
+}
+
+/* Admin table specific styles */
+#dashboard-table td:last-child {
+    text-align: right;
+    width: 60px; /* Fixed width for action column */
+}
+
+/* Admin table wrapper */
+#admin-table-wrapper {
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 15px;
+  border-radius: 8px;
+  max-width: 100%; /* Ensure table wrapper doesn't exceed container width */
+}
+
+/* Adjust table layout for admin table to prevent overflow */
+#adminUsersContainer #dashboard-table {
+  min-width: unset; /* Remove minimum width constraint */
+  table-layout: fixed; /* Force table to respect container width */
+  width: 100%;
+}
+
+#adminUsersContainer #dashboard-table td {
+  word-wrap: break-word; /* Allow text to wrap within cells */
+  overflow-wrap: break-word;
 }

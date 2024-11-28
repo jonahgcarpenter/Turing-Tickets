@@ -1,5 +1,9 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once('../config/database.php');
+require_once('emails.php');  // Changed from phpmailer.php to emails.php
 
 header('Content-Type: application/json');
 
@@ -16,27 +20,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
+    $response = ['success' => false, 'message' => '', 'ticketId' => null];
+
     try {
         $pdo = Database::dbConnect();
+        $pdo->beginTransaction();
 
-        // Insert the ticket into the database
         $stmt = $pdo->prepare('INSERT INTO tickets (title, name, email, category, description, status) VALUES (:title, :name, :email, :category, :description, "open")');
         $stmt->execute([
             ':title' => $title,
             ':name' => $name,
             ':email' => $email,
-            ':category' => $category, // category must match ENUM values exactly
+            ':category' => $category,
             ':description' => $description
         ]);
 
-        // Get the ID of the newly created ticket
         $ticketId = $pdo->lastInsertId();
+        
+        // Send email notification before committing transaction
+        $mailHandler = new MailHandler();
+        $ticketDetails = [
+            'id' => $ticketId,
+            'subject' => $title,
+            'description' => $description,
+            'status' => 'open'
+        ];
+        
+        $emailSent = $mailHandler->sendNewTicketNotification($email, $ticketDetails);
+        
+        // Commit transaction after email attempt
+        $pdo->commit();
 
-        echo json_encode(['success' => true, 'message' => "Ticket submitted successfully. Ticket ID: $ticketId"]);
+        $response['success'] = true;
+        $response['ticketId'] = $ticketId;
+        $response['message'] = "Ticket #$ticketId created successfully.";
+        if (!$emailSent) {
+            $response['message'] .= " Note: Confirmation email could not be sent.";
+        }
+
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'error' => 'Error submitting ticket: ' . $e->getMessage()]);
+        if (isset($pdo) && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        $response['success'] = false;
+        $response['message'] = "Error: " . $e->getMessage();
     }
 
+    echo json_encode($response);
     Database::dbDisconnect();
 }
 ?>
