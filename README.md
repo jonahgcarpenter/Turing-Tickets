@@ -25,3 +25,4 @@ This project is being developed as part of CSCI 487 Senior Project coursework.
 
 ## Known Issues
 - can't add response and close ticket at the same time
+- guest users cannot directly respond to support emails    without Google API, IMAP or POP3
