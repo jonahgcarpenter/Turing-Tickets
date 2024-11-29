@@ -22,3 +22,6 @@ This system allows users to:
 ## Development
 
 This project is being developed as part of CSCI 487 Senior Project coursework.
+
+## Known Issues
+- can't add response and close ticket at the same time
