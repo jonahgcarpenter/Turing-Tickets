@@ -1,36 +1,63 @@
 /* Color Variables */
 :root {
-  --powder-blue: #83C5E5; /* Ole Miss powder blue */
-  --text-color: #333;
-  --background-color: #fff;
-  --accent-color: #f5f5f5;
-  --border-color: #ccc;
-  --status-open: #d4edda;          /* Green */
-  --status-in-progress: #cce5ff;   /* Blue */
-  --status-awaiting: #fff3cd;      /* Yellow */
-  --status-closed: #f8d7da;        /* Red */
+  --powder-blue: #4f9de1; /* Ole Miss powder blue */
+  --powder-blue-dark: #3b7ab3;
+  --text-color: #2d3748;
+  --background-color: #edf2f7;    /* Slightly darker background */
+  --accent-color: #f7fafc;        /* Lighter accent for containers */
+  --border-color: #e2e8f0;        /* Darker border color */
+  --container-bg: rgba(255, 255, 255, 0.95);        /* White for main containers */
+  --table-row-alt: #f7fafc;      /* Alternating table row color */
+  --input-bg: #ffffff;           /* Input background color */
+  --status-open: #28a745;          /* Green */
+  --status-in-progress: #007bff;   /* Blue */
+  --status-awaiting: #ffc107;      /* Yellow */
+  --status-closed: #dc3545;        /* Red */
+  --shadow-sm: 0 2px 4px rgba(79, 157, 225, 0.1);
+  --shadow-md: 0 4px 6px rgba(79, 157, 225, 0.15);
+  --shadow-lg: 0 8px 24px rgba(79, 157, 225, 0.2);
+  --transition-speed: 0.3s;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --gradient-primary: linear-gradient(135deg, var(--powder-blue) 0%, #6366f1 100%);
 }
 
 /* General Styles */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: var(--text-color);
   background-color: var(--background-color);
+  line-height: 1.6;
   margin: 0;
   padding: 0;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  background-image: 
+    linear-gradient(135deg, rgba(79, 157, 225, 0.1) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(79, 157, 225, 0.1) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(79, 157, 225, 0.1) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(79, 157, 225, 0.1) 25%, transparent 25%);
+  background-position: 10px 0, 10px 0, 0 0, 0 0;
+  background-size: 20px 20px;
+  background-repeat: repeat;
 }
 
 .container {
-    max-width: 450px;
-    margin: 15px auto;
-    padding: 15px;
-    background-color: var(--accent-color);
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
-    margin-top: 20vh; /* Offset to lower the container */
+  max-width: 450px;
+  margin: 15px auto;
+  padding: 25px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-speed);
+  margin-top: 20vh; /* Offset to lower the container */
+}
+
+.container:hover {
+  transform: translateY(-2px);
 }
 
 /* Heading */
@@ -58,14 +85,25 @@ input[type="tel"],
 input[type="password"],
 select,
 textarea {
-  padding: 8px; /* Reduced padding */
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  padding: 12px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--input-bg);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
   width: 100%;
   box-sizing: border-box;
   font-size: 1em;
   margin-bottom: 10px; /* Reduced space between inputs */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow */
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--powder-blue);
+  box-shadow: 0 0 0 3px rgba(79, 157, 225, 0.2);
+  transform: translateY(-1px);
 }
 
 select {
@@ -77,23 +115,26 @@ textarea {
 }
 
 button {
-  background-color: var(--powder-blue);
-  color: var(--background-color);
+  background-image: var(--gradient-primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1em;
-  text-align: center;
-  padding: 8px;
-  border: 1px solid var(--border-color);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all var(--transition-speed);
+  box-shadow: var(--shadow-sm);
   width: 35%;
   margin: 0 auto;
   display: block;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+  text-transform: uppercase;
+  font-size: 0.9em;
 }
 
 button:hover {
-  background-color: #6bb1d4; /* Darker shade of powder blue */
+  background-image: linear-gradient(135deg, var(--powder-blue-dark) 0%, #5558d9 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Logout Button Styles */
@@ -167,15 +208,15 @@ footer {
 /* Tickets Controls Container */
 #controls-wrapper {
   padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  background-color: var(--accent-color);
+  border-radius: 12px;
   margin-bottom: 20px;
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
   align-items: center; /* Aligns items vertically */
   justify-content: space-between; /* Spaces out controls */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Added shadow */
+  box-shadow: var(--shadow-md);
 }
 
 .control-input, .control-select {
@@ -234,10 +275,11 @@ footer {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  background-color: var(--background-color); /* Add background color */
-  border-radius: 8px; /* Rounded corners */
+  background: var(--glass-bg); /* Add background color */
+  border-radius: 12px; /* Rounded corners */
   overflow: hidden; /* Ensure rounded corners are visible */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
 }
 
 #dashboard-table th, #dashboard-table td {
@@ -246,18 +288,31 @@ footer {
 }
 
 #dashboard-table th {
-  background-color: var(--powder-blue);
+  background-image: var(--gradient-primary);
   color: white;
+  font-weight: 600;
   text-transform: uppercase; /* Uppercase text */
-  letter-spacing: 0.05em; /* Slight letter spacing */
+  letter-spacing: 1px;
+  padding: 16px;
+  font-size: 0.85em;
 }
 
 #dashboard-table td {
   background-color: var(--accent-color); /* Light background for cells */
 }
 
+#dashboard-table tr:nth-child(even) td {
+  background-color: var(--table-row-alt);
+}
+
 .main-row {
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.main-row:hover {
+  transform: translateX(5px);
+  box-shadow: -5px 0 10px rgba(79, 157, 225, 0.1);
 }
 
 #dashboard-table td.email-cell {
@@ -333,15 +388,32 @@ footer {
 /* Add new styles for expanded content */
 .expandable-row {
   display: none; /* Hide by default */
+  transition: all var(--transition-speed);
 }
 
 .expandable-row.expanded {
   display: table-row; /* Show when expanded */
+  animation: fadeIn var(--transition-speed);
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-10px) scale(0.98);
+    filter: blur(4px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }
 
 .expanded-content {
     padding: 20px;
-    background-color: #fff;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
     border-radius: 6px;
     margin: 10px;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -356,7 +428,7 @@ footer {
 .expanded-content-section {
     margin-bottom: 15px;
     padding: 10px;
-    background-color: var(--accent-color);
+    background-color: var(--table-row-alt);
     border-radius: 4px;
 }
 
@@ -387,7 +459,7 @@ footer {
 }
 
 .note-container {
-    background-color: white;
+    background-color: var(--accent-color);
     border-radius: 6px;
     padding: 12px;
     margin-bottom: 12px;
@@ -405,19 +477,23 @@ footer {
 
 /* Status-specific row colors */
 #dashboard-table tr.status-open td {
-    background-color: var(--status-open);
+    background: linear-gradient(90deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+    border-left: 4px solid var(--status-open);
 }
 
 #dashboard-table tr.status-in-progress td {
-    background-color: var(--status-in-progress);
+    background: linear-gradient(90deg, rgba(0, 123, 255, 0.1), rgba(0, 123, 255, 0.05));
+    border-left: 4px solid var(--status-in-progress);
 }
 
 #dashboard-table tr.status-awaiting-response td {
-    background-color: var(--status-awaiting);
+    background: linear-gradient(90deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+    border-left: 4px solid var(--status-awaiting);
 }
 
 #dashboard-table tr.status-closed td {
-    background-color: var(--status-closed);
+    background: linear-gradient(90deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+    border-left: 4px solid var(--status-closed);
 }
 
 /* Admin table specific styles */
@@ -447,4 +523,16 @@ footer {
 #adminUsersContainer #dashboard-table td {
   word-wrap: break-word; /* Allow text to wrap within cells */
   overflow-wrap: break-word;
+}
+
+/* Cool loading animation */
+.loading::after {
+  content: "...";
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { content: "."; }
+  33% { content: ".."; }
+  66% { content: "..."; }
 }
