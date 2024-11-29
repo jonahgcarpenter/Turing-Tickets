@@ -1,21 +1,24 @@
-# Turing-Tickets
+# TuringTickets
 
-An IT Ticket system I wrote for my senior project in college. Uses PHP Mail for confirmation emails.
+A comprehensive IT ticketing system developed as a Senior Project for CSCI 487. This web-based application is designed to streamline and manage IT support requests efficiently.
 
-# Submit Tickets
-![image](https://github.com/user-attachments/assets/173d073b-d423-40d6-a0d0-75cd64bca9eb)
+## Project Overview
 
-# Admin Dashboard
-![image](https://github.com/user-attachments/assets/259c6404-b59c-4c17-93fe-706e0af1dac8)
+TuringTickets is a ticket management system built using:
+- PHP
+- HTML
+- CSS
+- PHP Mailer (for email notifications)
 
-# Ticket Info
-![image](https://github.com/user-attachments/assets/cb9c3fe1-1f61-4a9c-9283-4a946f266e0d)
+## Purpose
 
-# Admin Login
-![image](https://github.com/user-attachments/assets/6b1cdd2f-e9b4-4148-bb30-bc8994b0de3c)
+This system allows users to:
+- Submit IT support tickets
+- Track ticket status
+- Manage IT support requests
+- Streamline communication between users and IT staff
+- Receive automated email notifications for ticket updates
 
-# Known Issues
+## Development
 
-- edit echo messages
-- sometimes input fields bug out
-- guest replies to a note via email
+This project is being developed as part of CSCI 487 Senior Project coursework.
