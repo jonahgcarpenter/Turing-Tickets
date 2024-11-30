@@ -106,7 +106,7 @@ try {
                 $query .= " ORDER BY updated_at DESC, id DESC";
                 break;
             default: // 'status'
-                $query .= " ORDER BY FIELD(status, 'open', 'in-progress', 'awaiting-response', 'closed'), created_at DESC";
+                $query .= " ORDER BY FIELD(status, 'open', 'in-progress', 'awaiting-response', 'closed'), updated_at DESC";
         }
     }
 
@@ -119,9 +119,10 @@ try {
     $stmt->execute($params);
     $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch notes for each ticket
+    // Add server's current time to the response
     $result = array_map(function($ticket) use ($pdo) {
         $ticket['notes'] = fetchNotes($pdo, $ticket['id'], $ticket['status'] === 'closed');
+        $ticket['server_time'] = date('Y-m-d H:i:s');
         return $ticket;
     }, $tickets);
 

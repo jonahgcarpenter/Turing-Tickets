@@ -54,12 +54,13 @@
         <table id="dashboard-table">
             <thead>
                 <tr>
-                    <th class="ticket-number">No.</th>
+                    <th class="ticket-number">#</th>
+                    <th>Name</th>
                     <th>Created</th>
+                    <th>Updated</th>
                     <th>Request Type</th>
                     <th>Request Title</th>
                     <th>Latest Notes</th>
-                    <th>Status</th>
                 </tr>
             </thead>
             <tbody id="ticketTableBody">
@@ -67,7 +68,7 @@
                     <td>Loading</td><td>...</td> <!-- Main ticket row -->
                 </tr>
                 <tr class="expandable-row"> <!-- Expandable content row, initially hidden -->
-                    <td colspan="6">
+                    <td colspan="7"> <!-- Update colspan from 6 to 7 to match new column count -->
                         <div class="expanded-content">
                             <div class="ticket-metadata">
                                 <div class="metadata-item">

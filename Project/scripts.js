@@ -360,18 +360,27 @@ function addRow(ticketData) {
     const mainRow = document.createElement("tr");
     mainRow.classList.add("main-row", `status-${ticketData.status}`);
     
-    const truncatedContent = ticketData.notes && ticketData.notes.length > 0
-        ? ticketData.notes[0].content.slice(0, 10) + "..."
+    // Get the most recent note (last in the array)
+    const latestNote = ticketData.notes && ticketData.notes.length > 0
+        ? {
+            content: ticketData.notes[ticketData.notes.length - 1].content.slice(0, 30) + "...",
+            timestamp: ticketData.notes[ticketData.notes.length - 1].created_at
+        }
+        : null;
+
+    // Create the note content with timestamp for auto-updating
+    const truncatedContent = latestNote
+        ? `<span data-timestamp="${latestNote.timestamp}">${latestNote.content}</span>`
         : 'No Responses';
 
-    // Explicitly set text-align for each cell
     mainRow.innerHTML = `
         <td style="text-align: left !important">${ticketData.id}</td>
-        <td style="text-align: left !important">${formatDateTime(ticketData.created_at)}</td>
+        <td style="text-align: left !important">${ticketData.name || 'N/A'}</td>
+        <td style="text-align: left !important" data-timestamp="${ticketData.created_at}">${formatDateTime(ticketData.created_at)}</td>
+        <td style="text-align: left !important" data-timestamp="${ticketData.updated_at}">${formatDateTime(ticketData.updated_at)}</td>
         <td style="text-align: left !important">${ticketData.request_type || 'N/A'}</td>
         <td style="text-align: left !important">${ticketData.request_title || 'N/A'}</td>
         <td style="text-align: left !important">${truncatedContent}</td>
-        <td style="text-align: left !important">${ticketData.status}</td>
     `;
 
     mainRow.addEventListener("click", () => toggleExpand(mainRow));
@@ -380,16 +389,16 @@ function addRow(ticketData) {
     const expandableRow = document.createElement("tr");
     expandableRow.classList.add("expandable-row");
     expandableRow.innerHTML = `
-        <td colspan="6" style="text-align: left">
-            <div class="expanded-content" style="text-align: left">
+        <td colspan="7" style="text-align: left; width: 100%; box-sizing: border-box;">
+            <div class="expanded-content">
                 <div class="ticket-metadata">
                     <div class="metadata-item">
                         <span class="expanded-content-label">Created At:</span>
-                        <span class="expanded-content-value">${formatDateTime(ticketData.created_at)}</span>
+                        <span class="expanded-content-value">${formatFullDateTime(ticketData.created_at)}</span>
                     </div>
                     <div class="metadata-item">
                         <span class="expanded-content-label">Last Updated:</span>
-                        <span class="expanded-content-value">${formatDateTime(ticketData.updated_at)}</span>
+                        <span class="expanded-content-value">${formatFullDateTime(ticketData.updated_at)}</span>
                     </div>
                 </div>
 
@@ -518,23 +527,75 @@ function toggleExpand(row) {
     }
 }
 
-// Utility function to format date and time
+// Update the formatDateTime function
 function formatDateTime(dateTimeStr) {
     if (!dateTimeStr) return 'N/A';
     
     const dateObj = new Date(dateTimeStr.replace(' ', 'T'));
     if (isNaN(dateObj.getTime())) return 'Invalid Date';
     
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - dateObj) / 1000);
+    
+    // Less than a minute
+    if (diffInSeconds < 60) {
+        return 'just now';
+    }
+    
+    // Less than an hour
+    if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes}m ago`;
+    }
+    
+    // Less than a day
+    if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours}h ago`;
+    }
+    
+    // Less than a week
+    if (diffInSeconds < 604800) {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days}d ago`;
+    }
+    
+    // More than a week - show date
     const options = {
-        hour: 'numeric',
-        minute: '2-digit',
         month: 'numeric',
         day: 'numeric',
-        year: 'numeric',
+        year: '2-digit'
+    };
+    
+    return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+}
+
+// Add new function for full datetime format
+function formatFullDateTime(dateTimeStr) {
+    if (!dateTimeStr) return 'N/A';
+    
+    const dateObj = new Date(dateTimeStr.replace(' ', 'T'));
+    if (isNaN(dateObj.getTime())) return 'Invalid Date';
+    
+    const options = {
+        month: 'numeric',
+        day: 'numeric',
+        year: '2-digit',
+        hour: 'numeric',
+        minute: '2-digit',
         hour12: true
     };
     
     return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+}
+
+// Add automatic refresh of relative times (add this near the populateTicketTable function)
+function updateRelativeTimes() {
+    const timeElements = document.querySelectorAll('td[data-timestamp]');
+    timeElements.forEach(element => {
+        const timestamp = element.getAttribute('data-timestamp');
+        element.textContent = formatDateTime(timestamp);
+    });
 }
 
 // Remove both existing DOMContentLoaded event listeners for admin username
@@ -588,4 +649,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (document.getElementById('ticketTableBody')) {
         populateTicketTable();
     }
+    
+    // Set up periodic updates of relative times
+    setInterval(updateRelativeTimes, 60000); // Update every minute
 });
