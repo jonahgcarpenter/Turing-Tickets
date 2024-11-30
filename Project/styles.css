@@ -311,11 +311,44 @@ footer {
 .main-row {
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
 }
 
 .main-row:hover {
   transform: translateX(5px);
   box-shadow: -5px 0 10px rgba(79, 157, 225, 0.1);
+}
+
+/* Add new styles for collapsed main row */
+.main-row.collapsed {
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.main-row.collapsed:hover {
+    opacity: 1;
+    transform: translateX(0); /* Disable the default hover transform */
+    position: relative;
+}
+
+.main-row.collapsed:hover::after {
+    content: "↑";  /* Changed to a simple up arrow */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-color);
+    font-size: 28px;  /* Increased size for better visibility */
+    display: block;
+    text-align: center;
+    visibility: visible;
+    opacity: 1;
+}
+
+.main-row.collapsed td {
+    padding: 0 !important;
+    border-bottom: none !important;
+    color: transparent !important; /* Hide text */
 }
 
 #dashboard-table td.email-cell {
@@ -507,22 +540,26 @@ footer {
 /* Status-specific row colors */
 #dashboard-table tr.status-open td {
     background: linear-gradient(90deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
-    border-left: 4px solid var(--status-open);
+    border-bottom: 4px solid var(--status-open);
+    border-top: 4px solid var(--status-open);
 }
 
 #dashboard-table tr.status-in-progress td {
     background: linear-gradient(90deg, rgba(0, 123, 255, 0.1), rgba(0, 123, 255, 0.05));
-    border-left: 4px solid var(--status-in-progress);
+    border-bottom: 4px solid var(--status-in-progress);
+    border-top: 4px solid var(--status-in-progress);
 }
 
 #dashboard-table tr.status-awaiting-response td {
     background: linear-gradient(90deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
-    border-left: 4px solid var(--status-awaiting);
+    border-bottom: 4px solid var(--status-awaiting);
+    border-top: 4px solid var(--status-awaiting);
 }
 
 #dashboard-table tr.status-closed td {
     background: linear-gradient(90deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
-    border-left: 4px solid var(--status-closed);
+    border-bottom: 4px solid var(--status-closed);
+    border-top: 4px solid var(--status-closed);
 }
 
 /* Admin table specific styles */

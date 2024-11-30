@@ -393,6 +393,10 @@ function addRow(ticketData) {
             <div class="expanded-content">
                 <div class="ticket-metadata">
                     <div class="metadata-item">
+                        <span class="expanded-content-label">Ticket Number:</span>
+                        <span class="expanded-content-value">#${ticketData.id}</span>
+                    </div>
+                    <div class="metadata-item">
                         <span class="expanded-content-label">Created At:</span>
                         <span class="expanded-content-value">${formatFullDateTime(ticketData.created_at)}</span>
                     </div>
@@ -513,14 +517,22 @@ function addRow(ticketData) {
     ticketTableBody.appendChild(expandableRow);
 }
 
-// Function to toggle row expansion
+// Update the toggleExpand function
 function toggleExpand(row) {
     console.log("Toggling expand for row:", row);
     const expandableRow = row.nextElementSibling;
 
     if (expandableRow && expandableRow.classList.contains("expandable-row")) {
+        const isExpanding = expandableRow.style.display === "none" || !expandableRow.style.display;
+        
+        // Set display properties and hide text
+        row.classList.toggle('collapsed', isExpanding);
+        expandableRow.style.display = isExpanding ? "table-row" : "none";
         expandableRow.classList.toggle("expanded");
-        expandableRow.style.display = expandableRow.style.display === "none" ? "table-row" : "none";
+        
+        // Maintain color strip visibility
+        row.style.display = "table-row"; // Always keep row visible
+        
         console.log("Row toggled:", expandableRow);
     } else {
         console.error("Expandable row not found or incorrect structure:", row);
