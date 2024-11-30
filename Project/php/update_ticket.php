@@ -58,6 +58,17 @@ try {
     try {
         $pdo->beginTransaction();
         
+        // Get ticket email before any changes
+        $stmt = $pdo->prepare("
+            SELECT email FROM (
+                SELECT email FROM tickets WHERE id = ?
+                UNION
+                SELECT email FROM closed_tickets WHERE id = ?
+            ) t LIMIT 1
+        ");
+        $stmt->execute([$ticket_id, $ticket_id]);
+        $userEmail = $stmt->fetchColumn();
+
         // Simple location check
         $stmt = $pdo->prepare("SELECT 'active' as location FROM tickets WHERE id = ? UNION SELECT 'closed' FROM closed_tickets WHERE id = ?");
         $stmt->execute([$ticket_id, $ticket_id]);
@@ -103,6 +114,11 @@ try {
                 $stmt->execute([$newId, $ticket_id, $admin_id, $data['response']]);
                 error_log("Added response to closed ticket with ID: " . $newId);
             }
+            
+            // Send response notification
+            if (!empty($userEmail)) {
+                $mailer->sendResponseNotification($userEmail, $ticket_id, $data['response'], [], $admin_username);
+            }
         }
 
         // STEP 2: Handle status changes and reopening
@@ -139,8 +155,13 @@ try {
                 $stmt->execute([$ticket_id]);
 
                 $response['message'] = $isStatusUpdate ? 
-                    'Ticket reopened with status: ' . $reopenStatus : 
-                    'Ticket reopened with response';
+                    'Ticket #' . $ticket_id . ' has been reopened with status: ' . $reopenStatus : 
+                    'Ticket #' . $ticket_id . ' has been reopened with your response';
+                
+                // Send reopened notification
+                if (!empty($userEmail)) {
+                    $mailer->sendTicketReopenedNotification($userEmail, $ticket_id, []);
+                }
             }
         } else if ($isStatusUpdate) {
             // Handle regular status changes for active tickets
@@ -169,7 +190,12 @@ try {
                 $stmt = $pdo->prepare("DELETE FROM tickets WHERE id = ?");
                 $stmt->execute([$ticket_id]);
                 
-                $response['message'] = 'Ticket closed successfully';
+                $response['message'] = 'Ticket #' . $ticket_id . ' has been closed successfully';
+                
+                // Send closure notification
+                if (!empty($userEmail)) {
+                    $mailer->sendTicketClosureNotification($userEmail, $ticket_id, []);
+                }
             } else {
                 // Regular status update
                 $stmt = $pdo->prepare("
@@ -178,19 +204,25 @@ try {
                     WHERE id = ?
                 ");
                 $stmt->execute([$data['status'], $ticket_id]);
-                $response['message'] = 'Status updated successfully';
+                $response['message'] = 'Status for Ticket #' . $ticket_id . ' has been updated to: ' . $data['status'];
+                
+                // Send status change notification
+                if (!empty($userEmail)) {
+                    $mailer->sendStatusChangeNotification($userEmail, $ticket_id, $data['status'], $admin_username);
+                }
             }
         }
 
         // Set final message if both operations occurred
         if ($isStatusUpdate && $isResponseUpdate) {
-            $response['message'] .= ' and response added';
+            $response['message'] = 'Ticket #' . $ticket_id . ' - Status updated to ' . $data['status'] . ' and response added';
         } else if ($isResponseUpdate && !$isStatusUpdate) {
-            $response['message'] = 'Response added successfully';
+            $response['message'] = 'Response added to Ticket #' . $ticket_id . ' successfully';
         }
 
         $pdo->commit();
         $response['success'] = true;
+        $response['emailSent'] = true;
 
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
