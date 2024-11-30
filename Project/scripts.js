@@ -321,20 +321,13 @@ async function populateTicketTable() {
         const filterOption = document.getElementById("filter-status").value;
 
         const params = new URLSearchParams();
-
-        // Handle filter option
-        if (filterOption && filterOption !== "all") {
-            params.append("filterOption", filterOption);
-        }
-
-        // Handle sort option
-        if (sortOption) {
-            params.append("sort", sortOption);
-        }
-
-        // Handle search
+        
         if (searchInput) {
             params.append("ticket_id", searchInput);
+        } else {
+            // Only add sort and filter if not searching by ID
+            if (filterOption) params.append("filterOption", filterOption);
+            if (sortOption) params.append("sort", sortOption);
         }
 
         const url = `${BASE_API_URL}?${params.toString()}`;
@@ -343,14 +336,11 @@ async function populateTicketTable() {
         const response = await fetch(url);
         const data = await response.json();
 
-        // Handle redirect if unauthorized
         if (data.redirect) {
             alert(data.message);
             window.location.href = data.redirectUrl;
             return;
         }
-
-        console.log("Received data:", data); // Debug log
 
         if (!data.error) {
             const ticketTableBody = document.getElementById("ticketTableBody");
@@ -585,10 +575,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
     
-    // Call populateTicketTable if we're on the dashboard
+    // Initialize event listeners for sorting and filtering
+    const sortSelect = document.getElementById("sort-tickets");
+    const filterSelect = document.getElementById("filter-status");
+    const searchButton = document.getElementById("search-button");
+
+    if (sortSelect) sortSelect.addEventListener("change", populateTicketTable);
+    if (filterSelect) filterSelect.addEventListener("change", populateTicketTable);
+    if (searchButton) searchButton.addEventListener("click", populateTicketTable);
+    
+    // Initial table population
     if (document.getElementById('ticketTableBody')) {
         populateTicketTable();
     }
 });
-
-// ...existing code...
