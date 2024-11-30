@@ -83,19 +83,35 @@ try {
                 $stmt->execute([$ticket_id, $admin_id, $data['response']]);
                 error_log("Added response to active ticket");
             } else {
-                // Add response to closed ticket
+                // First get max ID from both response tables to ensure unique ID
                 $stmt = $pdo->prepare("
-                    INSERT INTO closed_responses (ticket_id, admin_id, response, created_at)
-                    VALUES (?, ?, ?, NOW())
+                    SELECT COALESCE(MAX(id), 0) as max_id FROM (
+                        SELECT id FROM responses
+                        UNION ALL
+                        SELECT id FROM closed_responses
+                    ) all_responses
                 ");
-                $stmt->execute([$ticket_id, $admin_id, $data['response']]);
-                error_log("Added response to closed ticket");
+                $stmt->execute();
+                $newId = $stmt->fetch(PDO::FETCH_ASSOC)['max_id'] + 1;
+                
+                // Add response to closed ticket with specific ID
+                $stmt = $pdo->prepare("
+                    INSERT INTO closed_responses 
+                    (id, ticket_id, admin_id, response, created_at)
+                    VALUES (?, ?, ?, ?, NOW())
+                ");
+                $stmt->execute([$newId, $ticket_id, $admin_id, $data['response']]);
+                error_log("Added response to closed ticket with ID: " . $newId);
             }
         }
 
         // STEP 2: Handle status changes
-        if ($isStatusUpdate) {
-            $newStatus = $data['status'];
+        if ($isStatusUpdate || ($isResponseUpdate && $currentLocation === 'closed')) {
+            // Determine the new status
+            $newStatus = 'in-progress';  // Default for response to closed ticket
+            if ($isStatusUpdate) {
+                $newStatus = $data['status'];  // Use selected status if explicitly set
+            }
             
             // Case 1: Moving to closed
             if ($newStatus === 'closed' && $currentLocation === 'active') {
@@ -125,9 +141,10 @@ try {
                 
                 $response['message'] = 'Ticket closed successfully';
             }
-            // Case 2: Reopening ticket
-            else if ($newStatus !== 'closed' && $currentLocation === 'closed') {
-                // Move ticket to active
+            // Case 2: Reopening ticket (either by status change or response)
+            else if (($newStatus !== 'closed' && $currentLocation === 'closed') || 
+                     ($isResponseUpdate && $currentLocation === 'closed')) {
+                // Move ticket to active with appropriate status
                 $stmt = $pdo->prepare("
                     INSERT INTO tickets 
                     (id, title, name, email, category, description, status, created_at, updated_at)
@@ -151,7 +168,9 @@ try {
                 $stmt = $pdo->prepare("DELETE FROM closed_tickets WHERE id = ?");
                 $stmt->execute([$ticket_id]);
 
-                $response['message'] = 'Ticket reopened with status: ' . $newStatus;
+                $response['message'] = $isResponseUpdate ? 
+                    'Ticket reopened with response' : 
+                    'Ticket reopened with status: ' . $newStatus;
             }
             // Case 3: Regular status update
             else if ($currentLocation === 'active') {
