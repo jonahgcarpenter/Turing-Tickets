@@ -203,6 +203,87 @@ footer {
     padding: 0 15px;
     width: calc(100% + 30px);
   }
+
+  /* Custom scrollbar styling */
+  #table-wrapper::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  #table-wrapper::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 4px;
+  }
+
+  #table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--powder-blue);
+    border-radius: 4px;
+  }
+
+  #table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--powder-blue-dark);
+  }
+
+  /* For Firefox */
+  #table-wrapper {
+    scrollbar-width: thin;
+    scrollbar-color: var(--powder-blue) var(--background-color);
+  }
+
+  /* Enhanced scrollbar styling */
+  #table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--powder-blue) var(--background-color);
+    padding-bottom: 5px; /* Add space for the scrollbar */
+  }
+  
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  #table-wrapper::-webkit-scrollbar {
+    height: 6px; /* Slightly smaller for better mobile feel */
+    width: 6px;
+  }
+
+  #table-wrapper::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 6px;
+    margin: 0 10px; /* Add some space on the sides */
+  }
+
+  #table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--powder-blue);
+    border-radius: 6px;
+    border: 2px solid var(--background-color);
+  }
+
+  #table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--powder-blue-dark);
+  }
+
+  #table-wrapper {
+    margin-top: 8px; /* Add space for the top scrollbar */
+  }
+
+  /* Show scroll indicator on mobile */
+  .scroll-indicator-container {
+    display: block !important; /* Force display on mobile */
+    position: relative;
+    height: 6px;
+    background: var(--background-color);
+    border-radius: 3px;
+    margin: 8px 0;
+    width: 100%;
+    z-index: 1; /* Ensure it's above other elements */
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    height: 100%;
+    background: var(--powder-blue);
+    border-radius: 3px;
+    width: var(--scroll-width, 0%);
+    transition: width 0.1s ease-out;
+  }
 }
 
 /* Tickets Controls Container */
@@ -266,9 +347,12 @@ footer {
 /* Table Wrapper */
 #table-wrapper {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: auto; /* Changed from auto to scroll */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+  position: relative;
+  padding-top: 8px; /* Space for top scrollbar */
+  margin-top: 16px; /* Increased space for top scrollbar */
 }
 
 #dashboard-table {
@@ -614,4 +698,40 @@ footer {
 tr.expandable-row[colspan="7"] {
     display: table-cell;
     width: 100%;
+}
+
+/* Scroll Indicator */
+.scroll-indicator-container {
+    display: none; /* Hide by default on desktop */
+    position: relative;
+    height: 6px;
+    background: var(--background-color);
+    border-radius: 3px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.scroll-indicator {
+    position: absolute;
+    height: 100%;
+    background: var(--powder-blue);
+    border-radius: 3px;
+    width: var(--scroll-width, 0%);
+    transition: width 0.1s ease-out;
+}
+
+/* Table Wrapper - remove previous ::before and ::after */
+#table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: var(--shadow-md);
+    margin-top: 0; /* Reset margin since we're using separate indicator */
+    padding-top: 0; /* Reset padding */
+}
+
+/* Remove previous scrollbar pseudo-elements */
+#table-wrapper::before,
+#table-wrapper::after {
+    display: none;
 }

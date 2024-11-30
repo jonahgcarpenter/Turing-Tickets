@@ -668,3 +668,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Set up periodic updates of relative times
     setInterval(updateRelativeTimes, 60000); // Update every minute
 });
+
+// Add scroll sync for table wrapper
+document.addEventListener('DOMContentLoaded', function() {
+    const tableWrapper = document.getElementById('table-wrapper');
+    const scrollIndicator = document.querySelector('.scroll-indicator');
+    
+    if (tableWrapper && scrollIndicator) {
+        tableWrapper.addEventListener('scroll', function() {
+            const scrollPercentage = (this.scrollLeft / (this.scrollWidth - this.clientWidth)) * 100;
+            scrollIndicator.style.width = `${scrollPercentage}%`;
+        });
+    }
+});
