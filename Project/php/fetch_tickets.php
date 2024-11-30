@@ -93,6 +93,12 @@ try {
 
         // Handle sorting
         switch ($sortOption) {
+            case 'created-asc':
+                $query .= " ORDER BY created_at ASC";
+                break;
+            case 'created-desc':
+                $query .= " ORDER BY created_at DESC";
+                break;
             case 'updated-asc':
                 $query .= " ORDER BY updated_at ASC";
                 break;
