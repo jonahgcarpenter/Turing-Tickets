@@ -233,7 +233,7 @@ function addAdminToTable(admin) {
 
 // Function to confirm and delete an admin
 async function confirmDelete(adminId) {
-    if (confirm("Are you sure you want to delete this admin?")) {
+    if (confirm("Are you sure you want to delete this admin, this will remove all associated responses?")) {
         console.log("Deleting admin with ID:", adminId); // Log the ID to ensure it is correct
         try {
             const response = await fetch('../auth/delete_admin.php', {
