@@ -24,6 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $pdo = Database::dbConnect();
+        $pdo->beginTransaction();
+
+        // Update mailer initialization with database connection
+        $mailHandler = new MailHandler($pdo);
 
         $stmt = $pdo->prepare('INSERT INTO tickets (title, name, email, category, description, status) VALUES (:title, :name, :email, :category, :description, "open")');
         $stmt->execute([
@@ -35,8 +39,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         $ticketId = $pdo->lastInsertId();
+        
+        // Send email notification before committing transaction
+        $ticketDetails = [
+            'id' => $ticketId,
+            'subject' => $title,
+            'description' => $description,
+            'status' => 'open'
+        ];
+        
+        $emailSent = $mailHandler->sendNewTicketNotification($email, $ticketDetails);
+        
+        // Commit transaction after email attempt
+        $pdo->commit();
 
-        echo json_encode(['success' => true, 'message' => "Ticket submitted successfully. Ticket ID: $ticketId"]);
+        $response['success'] = true;
+        $response['ticketId'] = $ticketId;
+        $response['message'] = "Ticket #$ticketId created successfully.";
+        if (!$emailSent) {
+            $response['message'] .= " Note: Confirmation email could not be sent.";
+        }
+
     } catch (Exception $e) {
         if (isset($pdo) && $pdo->inTransaction()) {
             $pdo->rollBack();

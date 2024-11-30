@@ -1,10 +1,25 @@
 /* Color Variables */
 :root {
-  --powder-blue: #83C5E5; /* Ole Miss powder blue */
-  --text-color: #333;
-  --background-color: #fff;
-  --accent-color: #f5f5f5;
-  --border-color: #ccc;
+  --powder-blue: #4f9de1; /* Ole Miss powder blue */
+  --powder-blue-dark: #3b7ab3;
+  --text-color: #2d3748;
+  --background-color: #edf2f7;    /* Slightly darker background */
+  --accent-color: #f7fafc;        /* Lighter accent for containers */
+  --border-color: #e2e8f0;        /* Darker border color */
+  --container-bg: rgba(255, 255, 255, 0.95);        /* White for main containers */
+  --table-row-alt: #f7fafc;      /* Alternating table row color */
+  --input-bg: #ffffff;           /* Input background color */
+  --status-open: #28a745;          /* Green */
+  --status-in-progress: #007bff;   /* Blue */
+  --status-awaiting: #ffc107;      /* Yellow */
+  --status-closed: #dc3545;        /* Red */
+  --shadow-sm: 0 2px 4px rgba(79, 157, 225, 0.1);
+  --shadow-md: 0 4px 6px rgba(79, 157, 225, 0.15);
+  --shadow-lg: 0 8px 24px rgba(79, 157, 225, 0.2);
+  --transition-speed: 0.3s;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --gradient-primary: linear-gradient(135deg, var(--powder-blue) 0%, #6366f1 100%);
 }
 
 /* General Styles */
@@ -29,13 +44,16 @@ body {
 }
 
 .container {
-    max-width: 450px;
-    margin: 15px auto;
-    padding: 15px;
-    background-color: var(--accent-color);
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 20vh; /* Offset to lower the container */
+  max-width: 450px;
+  margin: 15px auto;
+  padding: 25px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-speed);
+  margin-top: 20vh; /* Offset to lower the container */
 }
 
 .container:hover {
@@ -77,7 +95,6 @@ textarea {
   box-sizing: border-box;
   font-size: 1em;
   margin-bottom: 10px; /* Reduced space between inputs */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow */
 }
 
 input:focus,
@@ -110,39 +127,14 @@ button {
   width: 35%;
   margin: 0 auto;
   display: block;
+  text-transform: uppercase;
+  font-size: 0.9em;
 }
 
 button:hover {
   background-image: linear-gradient(135deg, var(--powder-blue-dark) 0%, #5558d9 100%);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-}
-
-/* Logout Button Styles */
-.logout-button {
-    position: relative;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.logout-button:hover {
-    background-color: #dc3545; /* Red color */
-    color: transparent; /* Hide all text content */
-}
-
-.logout-button:hover * {
-    visibility: hidden; /* Hide all child elements */
-}
-
-.logout-button:hover::after {
-    content: 'Logout';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    white-space: nowrap;
-    visibility: visible; /* Make sure the 'Logout' text is visible */
 }
 
 /* Logout Button Styles */
@@ -224,6 +216,7 @@ footer {
   gap: 15px;
   align-items: center; /* Aligns items vertically */
   justify-content: space-between; /* Spaces out controls */
+  box-shadow: var(--shadow-md);
 }
 
 .control-input, .control-select {
@@ -282,6 +275,11 @@ footer {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  background: var(--glass-bg); /* Add background color */
+  border-radius: 12px; /* Rounded corners */
+  overflow: hidden; /* Ensure rounded corners are visible */
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
 }
 
 #dashboard-table th, #dashboard-table td {
@@ -292,6 +290,48 @@ footer {
 #dashboard-table th {
   background-image: var(--gradient-primary);
   color: white;
+  font-weight: 600;
+  text-transform: uppercase; /* Uppercase text */
+  letter-spacing: 1px;
+  padding: 16px;
+  font-size: 0.85em;
+}
+
+#dashboard-table td {
+  background-color: var(--accent-color); /* Light background for cells */
+}
+
+#dashboard-table tr:nth-child(even) td {
+  background-color: var(--table-row-alt);
+}
+
+.main-row {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.main-row:hover {
+  transform: translateX(5px);
+  box-shadow: -5px 0 10px rgba(79, 157, 225, 0.1);
+}
+
+#dashboard-table td.email-cell {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: max-width 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+#dashboard-table td.email-cell.expanded {
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+    position: relative;
+    z-index: 2;
 }
 
 #dashboard-table .ticket-number {
@@ -495,114 +535,4 @@ footer {
   0% { content: "."; }
   33% { content: ".."; }
   66% { content: "..."; }
-}
-
-.expanded-content {
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 6px;
-    margin: 10px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.expanded-content h3 {
-    color: var(--powder-blue);
-    margin-bottom: 10px;
-    font-size: 1.1em;
-}
-
-.expanded-content-section {
-    margin-bottom: 15px;
-    padding: 10px;
-    background-color: var(--accent-color);
-    border-radius: 4px;
-}
-
-.expanded-content-label {
-    font-weight: bold;
-    color: var(--text-color);
-    margin-bottom: 5px;
-    display: block;
-}
-
-.expanded-content-value {
-    color: var(--text-color);
-    line-height: 1.4;
-}
-
-.ticket-metadata {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.metadata-item {
-    flex: 1;
-    min-width: 200px;
-}
-
-.note-container {
-    background-color: white;
-    border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.note-content {
-    margin-bottom: 6px;
-}
-
-.note-metadata {
-    font-size: 0.85em;
-    color: #666;
-}
-
-/* Status-specific row colors */
-#dashboard-table tr.status-open td {
-    background-color: var(--status-open);
-}
-
-#dashboard-table tr.status-in-progress td {
-    background-color: var(--status-in-progress);
-}
-
-#dashboard-table tr.status-awaiting-response td {
-    background-color: var(--status-awaiting);
-}
-
-#dashboard-table tr.status-closed td {
-    background-color: var(--status-closed);
-}
-
-/* Admin table specific styles */
-#dashboard-table td:last-child {
-    text-align: right;
-    width: 60px; /* Fixed width for action column */
-}
-
-/* Admin table wrapper */
-#admin-table-wrapper {
-  width: 100%;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
-  -webkit-overflow-scrolling: touch;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 15px;
-  border-radius: 8px;
-  max-width: 100%; /* Ensure table wrapper doesn't exceed container width */
-}
-
-/* Adjust table layout for admin table to prevent overflow */
-#adminUsersContainer #dashboard-table {
-  min-width: unset; /* Remove minimum width constraint */
-  table-layout: fixed; /* Force table to respect container width */
-  width: 100%;
-}
-
-#adminUsersContainer #dashboard-table td {
-  word-wrap: break-word; /* Allow text to wrap within cells */
-  overflow-wrap: break-word;
 }
