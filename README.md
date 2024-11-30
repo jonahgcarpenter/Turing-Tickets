@@ -24,5 +24,5 @@ This system allows users to:
 This project is being developed as part of CSCI 487 Senior Project coursework.
 
 ## Known Issues
-- can't add response and close ticket at the same time
-- guest users cannot directly respond to support emails    without Google API, IMAP or POP3
+- guest users cannot directly reply to support emails    without Google API, IMAP or POP3
+- autofill sometimes bugs out the input fields

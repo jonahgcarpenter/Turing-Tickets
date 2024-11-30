@@ -233,7 +233,7 @@ function addAdminToTable(admin) {
 
 // Function to confirm and delete an admin
 async function confirmDelete(adminId) {
-    if (confirm("Are you sure you want to delete this admin?")) {
+    if (confirm("Are you sure you want to delete this admin, this will remove all associated responses?")) {
         console.log("Deleting admin with ID:", adminId); // Log the ID to ensure it is correct
         try {
             const response = await fetch('../auth/delete_admin.php', {
@@ -321,20 +321,13 @@ async function populateTicketTable() {
         const filterOption = document.getElementById("filter-status").value;
 
         const params = new URLSearchParams();
-
-        // Handle filter option
-        if (filterOption && filterOption !== "all") {
-            params.append("filterOption", filterOption);
-        }
-
-        // Handle sort option
-        if (sortOption) {
-            params.append("sort", sortOption);
-        }
-
-        // Handle search
+        
         if (searchInput) {
             params.append("ticket_id", searchInput);
+        } else {
+            // Only add sort and filter if not searching by ID
+            if (filterOption) params.append("filterOption", filterOption);
+            if (sortOption) params.append("sort", sortOption);
         }
 
         const url = `${BASE_API_URL}?${params.toString()}`;
@@ -343,14 +336,11 @@ async function populateTicketTable() {
         const response = await fetch(url);
         const data = await response.json();
 
-        // Handle redirect if unauthorized
         if (data.redirect) {
             alert(data.message);
             window.location.href = data.redirectUrl;
             return;
         }
-
-        console.log("Received data:", data); // Debug log
 
         if (!data.error) {
             const ticketTableBody = document.getElementById("ticketTableBody");
@@ -370,18 +360,27 @@ function addRow(ticketData) {
     const mainRow = document.createElement("tr");
     mainRow.classList.add("main-row", `status-${ticketData.status}`);
     
-    const truncatedContent = ticketData.notes && ticketData.notes.length > 0
-        ? ticketData.notes[0].content.slice(0, 10) + "..."
+    // Get the most recent note (last in the array)
+    const latestNote = ticketData.notes && ticketData.notes.length > 0
+        ? {
+            content: ticketData.notes[ticketData.notes.length - 1].content.slice(0, 30) + "...",
+            timestamp: ticketData.notes[ticketData.notes.length - 1].created_at
+        }
+        : null;
+
+    // Create the note content with timestamp for auto-updating
+    const truncatedContent = latestNote
+        ? `<span data-timestamp="${latestNote.timestamp}">${latestNote.content}</span>`
         : 'No Responses';
 
-    // Explicitly set text-align for each cell
     mainRow.innerHTML = `
         <td style="text-align: left !important">${ticketData.id}</td>
-        <td style="text-align: left !important">${formatDateTime(ticketData.created_at)}</td>
+        <td style="text-align: left !important">${ticketData.name || 'N/A'}</td>
+        <td style="text-align: left !important" data-timestamp="${ticketData.created_at}">${formatDateTime(ticketData.created_at)}</td>
+        <td style="text-align: left !important" data-timestamp="${ticketData.updated_at}">${formatDateTime(ticketData.updated_at)}</td>
         <td style="text-align: left !important">${ticketData.request_type || 'N/A'}</td>
         <td style="text-align: left !important">${ticketData.request_title || 'N/A'}</td>
         <td style="text-align: left !important">${truncatedContent}</td>
-        <td style="text-align: left !important">${ticketData.status}</td>
     `;
 
     mainRow.addEventListener("click", () => toggleExpand(mainRow));
@@ -390,16 +389,20 @@ function addRow(ticketData) {
     const expandableRow = document.createElement("tr");
     expandableRow.classList.add("expandable-row");
     expandableRow.innerHTML = `
-        <td colspan="6" style="text-align: left">
-            <div class="expanded-content" style="text-align: left">
+        <td colspan="7" style="text-align: left; width: 100%; box-sizing: border-box;">
+            <div class="expanded-content">
                 <div class="ticket-metadata">
                     <div class="metadata-item">
+                        <span class="expanded-content-label">Ticket Number:</span>
+                        <span class="expanded-content-value">#${ticketData.id}</span>
+                    </div>
+                    <div class="metadata-item">
                         <span class="expanded-content-label">Created At:</span>
-                        <span class="expanded-content-value">${formatDateTime(ticketData.created_at)}</span>
+                        <span class="expanded-content-value">${formatFullDateTime(ticketData.created_at)}</span>
                     </div>
                     <div class="metadata-item">
                         <span class="expanded-content-label">Last Updated:</span>
-                        <span class="expanded-content-value">${formatDateTime(ticketData.updated_at)}</span>
+                        <span class="expanded-content-value">${formatFullDateTime(ticketData.updated_at)}</span>
                     </div>
                 </div>
 
@@ -459,54 +462,57 @@ function addRow(ticketData) {
     // Rest of the event listener code remains the same
     expandableRow.addEventListener("click", (event) => {
         if (event.target && event.target.id === `save-changes-${ticketData.id}`) {
-            const updatedStatus = document.getElementById(`status-update-${ticketData.id}`).value;
-            const newResponse = document.getElementById(`add-response-${ticketData.id}`).value;
-
-            const statusPromise = updatedStatus ? 
-                fetch('../php/update_status.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        ticket_id: ticketData.id,
-                        status: updatedStatus
-                    }),
-                }).then(response => response.json()) : 
-                Promise.resolve({ success: true });
-
-            const responsePromise = newResponse.trim() ? 
-                fetch('../php/add_response.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        ticket_id: ticketData.id,
-                        response: newResponse
-                    }),
-                }).then(response => response.json()) : 
-                Promise.resolve({ success: true });
-
-            Promise.all([statusPromise, responsePromise])
-                .then(([statusResult, responseResult]) => {
-                    let messages = [];
-                    if (statusResult.message) messages.push(statusResult.message);
-                    if (responseResult.message) messages.push(responseResult.message);
-                    
-                    if (statusResult.success && responseResult.success) {
-                        if (messages.length > 0) {
-                            alert(messages.join('\n'));
-                        }
-                        window.location.reload();
-                    } else {
-                        alert('Error: ' + messages.join('\n'));
+            event.preventDefault();
+            const statusSelect = document.getElementById(`status-update-${ticketData.id}`);
+            const responseTextarea = document.getElementById(`add-response-${ticketData.id}`);
+            
+            const updatedStatus = statusSelect.value;
+            const newResponse = responseTextarea.value.trim();
+        
+            // Only proceed if there are actual changes
+            if (!updatedStatus && !newResponse) {
+                alert('No changes to save.');
+                return;
+            }
+        
+            // Create request payload with only changed fields
+            const payload = { ticket_id: ticketData.id };
+            if (updatedStatus && updatedStatus !== ticketData.status) {
+                payload.status = updatedStatus;
+            }
+            if (newResponse) {
+                payload.response = newResponse;
+            }
+        
+            // Show loading state
+            event.target.disabled = true;
+            event.target.textContent = 'Saving...';
+        
+            fetch('../php/update_ticket.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(result.message);
+                    populateTicketTable();
+                    responseTextarea.value = '';
+                } else {
+                    console.error('Server Error:', result.error || result.message);
+                    if (result.sqlError) {
+                        console.error('SQL Error:', result.sqlError);
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An unexpected error occurred. Please try again.');
-                });
+                    alert('Error: ' + (result.message || 'Failed to update ticket'));
+                }
+            })
+            .catch(error => {
+                console.error('Network Error:', error);
+                alert('An unexpected error occurred. Please check the console for details.');
+            });
         }
     });
 
@@ -514,37 +520,97 @@ function addRow(ticketData) {
     ticketTableBody.appendChild(expandableRow);
 }
 
-// Function to toggle row expansion
+// Update the toggleExpand function
 function toggleExpand(row) {
     console.log("Toggling expand for row:", row);
     const expandableRow = row.nextElementSibling;
 
     if (expandableRow && expandableRow.classList.contains("expandable-row")) {
+        const isExpanding = expandableRow.style.display === "none" || !expandableRow.style.display;
+        
+        // Set display properties and hide text
+        row.classList.toggle('collapsed', isExpanding);
+        expandableRow.style.display = isExpanding ? "table-row" : "none";
         expandableRow.classList.toggle("expanded");
-        expandableRow.style.display = expandableRow.style.display === "none" ? "table-row" : "none";
+        
+        // Maintain color strip visibility
+        row.style.display = "table-row"; // Always keep row visible
+        
         console.log("Row toggled:", expandableRow);
     } else {
         console.error("Expandable row not found or incorrect structure:", row);
     }
 }
 
-// Utility function to format date and time
+// Update the formatDateTime function
 function formatDateTime(dateTimeStr) {
     if (!dateTimeStr) return 'N/A';
     
     const dateObj = new Date(dateTimeStr.replace(' ', 'T'));
     if (isNaN(dateObj.getTime())) return 'Invalid Date';
     
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - dateObj) / 1000);
+    
+    // Less than a minute
+    if (diffInSeconds < 60) {
+        return 'just now';
+    }
+    
+    // Less than an hour
+    if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes}m ago`;
+    }
+    
+    // Less than a day
+    if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours}h ago`;
+    }
+    
+    // Less than a week
+    if (diffInSeconds < 604800) {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days}d ago`;
+    }
+    
+    // More than a week - show date
     const options = {
-        hour: 'numeric',
-        minute: '2-digit',
         month: 'numeric',
         day: 'numeric',
-        year: 'numeric',
+        year: '2-digit'
+    };
+    
+    return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+}
+
+// Add new function for full datetime format
+function formatFullDateTime(dateTimeStr) {
+    if (!dateTimeStr) return 'N/A';
+    
+    const dateObj = new Date(dateTimeStr.replace(' ', 'T'));
+    if (isNaN(dateObj.getTime())) return 'Invalid Date';
+    
+    const options = {
+        month: 'numeric',
+        day: 'numeric',
+        year: '2-digit',
+        hour: 'numeric',
+        minute: '2-digit',
         hour12: true
     };
     
     return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+}
+
+// Add automatic refresh of relative times (add this near the populateTicketTable function)
+function updateRelativeTimes() {
+    const timeElements = document.querySelectorAll('td[data-timestamp]');
+    timeElements.forEach(element => {
+        const timestamp = element.getAttribute('data-timestamp');
+        element.textContent = formatDateTime(timestamp);
+    });
 }
 
 // Remove both existing DOMContentLoaded event listeners for admin username
@@ -585,10 +651,33 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
     
-    // Call populateTicketTable if we're on the dashboard
+    // Initialize event listeners for sorting and filtering
+    const sortSelect = document.getElementById("sort-tickets");
+    const filterSelect = document.getElementById("filter-status");
+    const searchButton = document.getElementById("search-button");
+
+    if (sortSelect) sortSelect.addEventListener("change", populateTicketTable);
+    if (filterSelect) filterSelect.addEventListener("change", populateTicketTable);
+    if (searchButton) searchButton.addEventListener("click", populateTicketTable);
+    
+    // Initial table population
     if (document.getElementById('ticketTableBody')) {
         populateTicketTable();
     }
+    
+    // Set up periodic updates of relative times
+    setInterval(updateRelativeTimes, 60000); // Update every minute
 });
 
-// ...existing code...
+// Add scroll sync for table wrapper
+document.addEventListener('DOMContentLoaded', function() {
+    const tableWrapper = document.getElementById('table-wrapper');
+    const scrollIndicator = document.querySelector('.scroll-indicator');
+    
+    if (tableWrapper && scrollIndicator) {
+        tableWrapper.addEventListener('scroll', function() {
+            const scrollPercentage = (this.scrollLeft / (this.scrollWidth - this.clientWidth)) * 100;
+            scrollIndicator.style.width = `${scrollPercentage}%`;
+        });
+    }
+});

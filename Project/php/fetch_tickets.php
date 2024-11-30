@@ -93,24 +93,36 @@ try {
 
         // Handle sorting
         switch ($sortOption) {
+            case 'created-asc':
+                $query .= " ORDER BY created_at ASC, id ASC";
+                break;
+            case 'created-desc':
+                $query .= " ORDER BY created_at DESC, id DESC";
+                break;
             case 'updated-asc':
-                $query .= " ORDER BY updated_at ASC";
+                $query .= " ORDER BY updated_at ASC, id ASC";
                 break;
             case 'updated-desc':
-                $query .= " ORDER BY updated_at DESC";
+                $query .= " ORDER BY updated_at DESC, id DESC";
                 break;
-            default:
-                $query .= " ORDER BY status";
+            default: // 'status'
+                $query .= " ORDER BY FIELD(status, 'open', 'in-progress', 'awaiting-response', 'closed'), updated_at DESC";
         }
     }
+
+    // Add debug logging for sorting
+    error_log("Sort option: " . $sortOption);
+    error_log("Filter option: " . $filterOption);
+    error_log("Final query: " . $query);
 
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch notes for each ticket
+    // Add server's current time to the response
     $result = array_map(function($ticket) use ($pdo) {
         $ticket['notes'] = fetchNotes($pdo, $ticket['id'], $ticket['status'] === 'closed');
+        $ticket['server_time'] = date('Y-m-d H:i:s');
         return $ticket;
     }, $tickets);
 

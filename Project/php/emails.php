@@ -158,86 +158,50 @@ class MailHandler {
     }
 
     private function getTicketData($ticketId) {
-        // Try active tickets first
         $stmt = $this->db->prepare("
             SELECT 
-                id as ticket_id,
-                title,
-                name,
-                email,
-                category,
-                description,
-                status,
-                created_at,
-                updated_at,
-                NULL as closed_date
-            FROM tickets 
-            WHERE id = ?
+                t.*,
+                CASE 
+                    WHEN t.status = 'closed' THEN 
+                        (SELECT GROUP_CONCAT(CONCAT_WS('|', r.response, r.created_at, COALESCE(u2.username, 'System'))
+                         ORDER BY r.created_at DESC SEPARATOR '---')
+                         FROM closed_responses r 
+                         LEFT JOIN users u2 ON r.admin_id = u2.id
+                         WHERE r.ticket_id = t.ticket_id)
+                    ELSE 
+                        (SELECT GROUP_CONCAT(CONCAT_WS('|', r.response, r.created_at, COALESCE(u2.username, 'System'))
+                         ORDER BY r.created_at DESC SEPARATOR '---')
+                         FROM responses r 
+                         LEFT JOIN users u2 ON r.admin_id = u2.id
+                         WHERE r.ticket_id = t.ticket_id)
+                END as notes
+            FROM (
+                SELECT id as ticket_id, title, name, email, category, description, status, 
+                       created_at, updated_at
+                FROM tickets WHERE id = ?
+                UNION ALL
+                SELECT id as ticket_id, title, name, email, category, description, status,
+                       created_at, updated_at
+                FROM closed_tickets WHERE id = ?
+            ) t
         ");
-        $stmt->execute([$ticketId]);
+        $stmt->execute([$ticketId, $ticketId]);
         $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // If not found, try closed tickets
-        if (!$ticket) {
-            $stmt = $this->db->prepare("
-                SELECT 
-                    id as ticket_id,
-                    title,
-                    name,
-                    email,
-                    category,
-                    description,
-                    status,
-                    created_at,
-                    updated_at,
-                    closed_date
-                FROM closed_tickets 
-                WHERE id = ?
-            ");
-            $stmt->execute([$ticketId]);
-            $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
-        }
-
         if ($ticket) {
-            // Get responses based on ticket status
-            $responses = ($ticket['status'] === 'closed') 
-                ? $this->getClosedTicketResponses($ticketId)
-                : $this->getActiveTicketResponses($ticketId);
-            
-            $ticket['responses'] = $responses;
+            // Parse notes into responses array
+            $notes = explode('---', $ticket['notes'] ?? '');
+            $ticket['responses'] = array_map(function($note) {
+                $parts = explode('|', $note);
+                return [
+                    'content' => $parts[0] ?? '',
+                    'created_at' => $parts[1] ?? $ticket['updated_at'],
+                    'admin_username' => $parts[2] ?? 'System'
+                ];
+            }, array_filter($notes));
         }
 
         return $ticket;
-    }
-
-    private function getActiveTicketResponses($ticketId) {
-        $stmt = $this->db->prepare("
-            SELECT 
-                r.response as content,
-                r.created_at,
-                u.username as admin_username
-            FROM responses r
-            JOIN users u ON r.admin_id = u.id
-            WHERE r.ticket_id = ?
-            ORDER BY r.created_at ASC
-        ");
-        $stmt->execute([$ticketId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    private function getClosedTicketResponses($ticketId) {
-        $stmt = $this->db->prepare("
-            SELECT 
-                r.response as content,
-                r.created_at,
-                u.username as admin_username
-            FROM closed_responses r
-            JOIN users u ON r.admin_id = u.id
-            WHERE r.ticket_id = ?
-            ORDER BY r.created_at ASC
-        ");
-        $stmt->execute([$ticketId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function sendNewTicketNotification($userEmail, $ticketData) {
@@ -279,15 +243,33 @@ class MailHandler {
             $this->resetMailer();
             $this->mailer->setFrom($this->config['from_email'], $this->config['from_name']);
             $this->mailer->addAddress($userEmail);
-            $this->mailer->Subject = "[Ticket #$ticketId] Status Updated: $newStatus";
+
+            // Customize subject and content based on status
+            $statusText = ucfirst($newStatus);
+            switch ($newStatus) {
+                case 'in-progress':
+                    $statusMessage = "Your ticket is now being worked on by our support team.";
+                    break;
+                case 'awaiting-response':
+                    $statusMessage = "We're waiting for your response to proceed further.";
+                    break;
+                case 'closed':
+                    $statusMessage = "Your ticket has been resolved and closed.";
+                    break;
+                default:
+                    $statusMessage = "Your ticket status has been updated.";
+            }
+
+            $this->mailer->Subject = "[Ticket #$ticketId] Status Updated to $statusText";
             
             $this->getThreadHeaders($ticketId);
             
             $content = $this->generateTicketContent(
                 $ticketData,
-                "Status Update",
+                "Ticket Status Update",
                 "<p><strong>Updated by:</strong> $adminUsername</p>" .
-                "<p>New Status: <strong>$newStatus</strong></p>"
+                "<p>New Status: <strong>$statusText</strong></p>" .
+                "<p>$statusMessage</p>"
             );
             
             $this->mailer->Body = $this->getEmailTemplate($content);
@@ -302,21 +284,30 @@ class MailHandler {
 
     public function sendResponseNotification($userEmail, $ticketId, $response, $ticketData, $adminUsername) {
         try {
-            $ticketData = $this->getTicketData($ticketId); // Get fresh ticket data
+            $ticketData = $this->getTicketData($ticketId);
             if (!$ticketData) return false;
 
             $this->resetMailer();
             $this->mailer->setFrom($this->config['from_email'], $this->config['from_name']);
             $this->mailer->addAddress($userEmail);
-            $this->mailer->Subject = "[Ticket #{$ticketId}] New Response Added";
+            
+            // More descriptive subject based on ticket status
+            $subjectPrefix = $ticketData['status'] === 'awaiting-response' ? 
+                "Action Required" : "New Update";
+            $this->mailer->Subject = "[Ticket #{$ticketId}] $subjectPrefix";
             
             $this->getThreadHeaders($ticketId);
             
+            $actionNeeded = $ticketData['status'] === 'awaiting-response' ?
+                "<p style='color: #ff6b6b;'><strong>Action Required:</strong> Please respond to this update to help us assist you better.</p>" :
+                "";
+            
             $content = $this->generateTicketContent(
                 $ticketData,
-                "New Response Added to Ticket",
+                "New Response Added to Your Ticket",
                 "<p><strong>Response from:</strong> $adminUsername</p>" .
-                "<p><strong>New Response:</strong><br>" . nl2br(htmlspecialchars($response)) . "</p>"
+                "<p><strong>Message:</strong><br>" . nl2br(htmlspecialchars($response)) . "</p>" .
+                $actionNeeded
             );
             
             $this->mailer->Body = $this->getEmailTemplate($content);
@@ -345,7 +336,7 @@ class MailHandler {
                 $ticketData,
                 "Ticket Has Been Closed",
                 "<p>This ticket has been marked as closed.</p>" .
-                "<p style='color:#666;margin-top:15px'>Reply to this email if you need to reopen this ticket.</p>"
+                "<p style='color:#666;margin-top:15px'>Submit a new ticket referencing this ticket number if you need further assistance</p>"
             );
             
             $this->mailer->Body = $this->getEmailTemplate($content);
