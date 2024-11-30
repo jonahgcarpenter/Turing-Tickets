@@ -39,26 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':email' => $email
         ]);
 
-        $newAdminId = $pdo->lastInsertId();
+        // Retrieve the ID of the newly added admin
+        $newAdmin = [
+            'id' => $pdo->lastInsertId(),
+            'username' => $username,
+            'email' => $email
+        ];
 
-        // Send welcome email with credentials
-        $mailHandler = new MailHandler();
-        $emailSent = $mailHandler->sendAdminWelcomeEmail($email, $username, $password);
-
-        if (!$emailSent) {
-            // Log the email failure but don't prevent the admin creation
-            error_log("Failed to send welcome email to new admin: $email");
-        }
-
-        echo json_encode([
-            'success' => true, 
-            'admin' => [
-                'id' => $newAdminId,
-                'username' => $username,
-                'email' => $email
-            ],
-            'emailSent' => $emailSent
-        ]);
+        echo json_encode(['success' => true, 'admin' => $newAdmin]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => 'Error adding admin: ' . $e->getMessage()]);
     }

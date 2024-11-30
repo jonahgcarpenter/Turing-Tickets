@@ -5,22 +5,27 @@
   --background-color: #fff;
   --accent-color: #f5f5f5;
   --border-color: #ccc;
-  --status-open: #d4edda;          /* Green */
-  --status-in-progress: #cce5ff;   /* Blue */
-  --status-awaiting: #fff3cd;      /* Yellow */
-  --status-closed: #f8d7da;        /* Red */
 }
 
 /* General Styles */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: var(--text-color);
   background-color: var(--background-color);
+  line-height: 1.6;
   margin: 0;
   padding: 0;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  background-image: 
+    linear-gradient(135deg, rgba(79, 157, 225, 0.1) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(79, 157, 225, 0.1) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(79, 157, 225, 0.1) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(79, 157, 225, 0.1) 25%, transparent 25%);
+  background-position: 10px 0, 10px 0, 0 0, 0 0;
+  background-size: 20px 20px;
+  background-repeat: repeat;
 }
 
 .container {
@@ -29,8 +34,12 @@ body {
     padding: 15px;
     background-color: var(--accent-color);
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin-top: 20vh; /* Offset to lower the container */
+}
+
+.container:hover {
+  transform: translateY(-2px);
 }
 
 /* Heading */
@@ -58,14 +67,26 @@ input[type="tel"],
 input[type="password"],
 select,
 textarea {
-  padding: 8px; /* Reduced padding */
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  padding: 12px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--input-bg);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
   width: 100%;
   box-sizing: border-box;
   font-size: 1em;
   margin-bottom: 10px; /* Reduced space between inputs */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow */
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--powder-blue);
+  box-shadow: 0 0 0 3px rgba(79, 157, 225, 0.2);
+  transform: translateY(-1px);
 }
 
 select {
@@ -77,23 +98,51 @@ textarea {
 }
 
 button {
-  background-color: var(--powder-blue);
-  color: var(--background-color);
+  background-image: var(--gradient-primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1em;
-  text-align: center;
-  padding: 8px;
-  border: 1px solid var(--border-color);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all var(--transition-speed);
+  box-shadow: var(--shadow-sm);
   width: 35%;
   margin: 0 auto;
   display: block;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
 }
 
 button:hover {
-  background-color: #6bb1d4; /* Darker shade of powder blue */
+  background-image: linear-gradient(135deg, var(--powder-blue-dark) 0%, #5558d9 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Logout Button Styles */
+.logout-button {
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #dc3545; /* Red color */
+    color: transparent; /* Hide all text content */
+}
+
+.logout-button:hover * {
+    visibility: hidden; /* Hide all child elements */
+}
+
+.logout-button:hover::after {
+    content: 'Logout';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    white-space: nowrap;
+    visibility: visible; /* Make sure the 'Logout' text is visible */
 }
 
 /* Logout Button Styles */
@@ -167,15 +216,14 @@ footer {
 /* Tickets Controls Container */
 #controls-wrapper {
   padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  background-color: var(--accent-color);
+  border-radius: 12px;
   margin-bottom: 20px;
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
   align-items: center; /* Aligns items vertically */
   justify-content: space-between; /* Spaces out controls */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Added shadow */
 }
 
 .control-input, .control-select {
@@ -234,10 +282,6 @@ footer {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  background-color: var(--background-color); /* Add background color */
-  border-radius: 8px; /* Rounded corners */
-  overflow: hidden; /* Ensure rounded corners are visible */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
 }
 
 #dashboard-table th, #dashboard-table td {
@@ -246,37 +290,8 @@ footer {
 }
 
 #dashboard-table th {
-  background-color: var(--powder-blue);
+  background-image: var(--gradient-primary);
   color: white;
-  text-transform: uppercase; /* Uppercase text */
-  letter-spacing: 0.05em; /* Slight letter spacing */
-}
-
-#dashboard-table td {
-  background-color: var(--accent-color); /* Light background for cells */
-}
-
-.main-row {
-  cursor: pointer;
-}
-
-#dashboard-table td.email-cell {
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: max-width 0.3s ease;
-    position: relative;
-    z-index: 1;
-}
-
-#dashboard-table td.email-cell.expanded {
-    max-width: none;
-    white-space: normal;
-    overflow: visible;
-    position: relative;
-    z-index: 2;
 }
 
 #dashboard-table .ticket-number {
@@ -333,10 +348,153 @@ footer {
 /* Add new styles for expanded content */
 .expandable-row {
   display: none; /* Hide by default */
+  transition: all var(--transition-speed);
 }
 
 .expandable-row.expanded {
   display: table-row; /* Show when expanded */
+  animation: fadeIn var(--transition-speed);
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-10px) scale(0.98);
+    filter: blur(4px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.expanded-content {
+    padding: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    margin: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.expanded-content h3 {
+    color: var(--powder-blue);
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.expanded-content-section {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: var(--table-row-alt);
+    border-radius: 4px;
+}
+
+.expanded-content-label {
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 5px;
+    display: block;
+}
+
+.expanded-content-value {
+    color: var(--text-color);
+    line-height: 1.4;
+}
+
+.ticket-metadata {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.metadata-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.note-container {
+    background-color: var(--accent-color);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.note-content {
+    margin-bottom: 6px;
+}
+
+.note-metadata {
+    font-size: 0.85em;
+    color: #666;
+}
+
+/* Status-specific row colors */
+#dashboard-table tr.status-open td {
+    background: linear-gradient(90deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+    border-left: 4px solid var(--status-open);
+}
+
+#dashboard-table tr.status-in-progress td {
+    background: linear-gradient(90deg, rgba(0, 123, 255, 0.1), rgba(0, 123, 255, 0.05));
+    border-left: 4px solid var(--status-in-progress);
+}
+
+#dashboard-table tr.status-awaiting-response td {
+    background: linear-gradient(90deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+    border-left: 4px solid var(--status-awaiting);
+}
+
+#dashboard-table tr.status-closed td {
+    background: linear-gradient(90deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+    border-left: 4px solid var(--status-closed);
+}
+
+/* Admin table specific styles */
+#dashboard-table td:last-child {
+    text-align: right;
+    width: 60px; /* Fixed width for action column */
+}
+
+/* Admin table wrapper */
+#admin-table-wrapper {
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 15px;
+  border-radius: 8px;
+  max-width: 100%; /* Ensure table wrapper doesn't exceed container width */
+}
+
+/* Adjust table layout for admin table to prevent overflow */
+#adminUsersContainer #dashboard-table {
+  min-width: unset; /* Remove minimum width constraint */
+  table-layout: fixed; /* Force table to respect container width */
+  width: 100%;
+}
+
+#adminUsersContainer #dashboard-table td {
+  word-wrap: break-word; /* Allow text to wrap within cells */
+  overflow-wrap: break-word;
+}
+
+/* Cool loading animation */
+.loading::after {
+  content: "...";
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { content: "."; }
+  33% { content: ".."; }
+  66% { content: "..."; }
 }
 
 .expanded-content {
