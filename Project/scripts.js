@@ -462,54 +462,57 @@ function addRow(ticketData) {
     // Rest of the event listener code remains the same
     expandableRow.addEventListener("click", (event) => {
         if (event.target && event.target.id === `save-changes-${ticketData.id}`) {
-            const updatedStatus = document.getElementById(`status-update-${ticketData.id}`).value;
-            const newResponse = document.getElementById(`add-response-${ticketData.id}`).value;
-
-            const statusPromise = updatedStatus ? 
-                fetch('../php/update_status.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        ticket_id: ticketData.id,
-                        status: updatedStatus
-                    }),
-                }).then(response => response.json()) : 
-                Promise.resolve({ success: true });
-
-            const responsePromise = newResponse.trim() ? 
-                fetch('../php/add_response.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        ticket_id: ticketData.id,
-                        response: newResponse
-                    }),
-                }).then(response => response.json()) : 
-                Promise.resolve({ success: true });
-
-            Promise.all([statusPromise, responsePromise])
-                .then(([statusResult, responseResult]) => {
-                    let messages = [];
-                    if (statusResult.message) messages.push(statusResult.message);
-                    if (responseResult.message) messages.push(responseResult.message);
-                    
-                    if (statusResult.success && responseResult.success) {
-                        if (messages.length > 0) {
-                            alert(messages.join('\n'));
-                        }
-                        window.location.reload();
-                    } else {
-                        alert('Error: ' + messages.join('\n'));
+            event.preventDefault();
+            const statusSelect = document.getElementById(`status-update-${ticketData.id}`);
+            const responseTextarea = document.getElementById(`add-response-${ticketData.id}`);
+            
+            const updatedStatus = statusSelect.value;
+            const newResponse = responseTextarea.value.trim();
+        
+            // Only proceed if there are actual changes
+            if (!updatedStatus && !newResponse) {
+                alert('No changes to save.');
+                return;
+            }
+        
+            // Create request payload with only changed fields
+            const payload = { ticket_id: ticketData.id };
+            if (updatedStatus && updatedStatus !== ticketData.status) {
+                payload.status = updatedStatus;
+            }
+            if (newResponse) {
+                payload.response = newResponse;
+            }
+        
+            // Show loading state
+            event.target.disabled = true;
+            event.target.textContent = 'Saving...';
+        
+            fetch('../php/update_ticket.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(result.message);
+                    populateTicketTable();
+                    responseTextarea.value = '';
+                } else {
+                    console.error('Server Error:', result.error || result.message);
+                    if (result.sqlError) {
+                        console.error('SQL Error:', result.sqlError);
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An unexpected error occurred. Please try again.');
-                });
+                    alert('Error: ' + (result.message || 'Failed to update ticket'));
+                }
+            })
+            .catch(error => {
+                console.error('Network Error:', error);
+                alert('An unexpected error occurred. Please check the console for details.');
+            });
         }
     });
 

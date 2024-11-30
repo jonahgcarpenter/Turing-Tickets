@@ -158,86 +158,52 @@ class MailHandler {
     }
 
     private function getTicketData($ticketId) {
-        // Try active tickets first
         $stmt = $this->db->prepare("
             SELECT 
-                id as ticket_id,
-                title,
-                name,
-                email,
-                category,
-                description,
-                status,
-                created_at,
-                updated_at,
-                NULL as closed_date
-            FROM tickets 
-            WHERE id = ?
+                t.*,
+                COALESCE(u.username, 'System') as admin_username,
+                CASE 
+                    WHEN t.status = 'closed' THEN 
+                        (SELECT GROUP_CONCAT(CONCAT_WS('|', r.response, r.created_at, COALESCE(u2.username, 'System'))
+                         ORDER BY r.created_at DESC SEPARATOR '---')
+                         FROM closed_responses r 
+                         LEFT JOIN users u2 ON r.admin_id = u2.id
+                         WHERE r.ticket_id = t.id)
+                    ELSE 
+                        (SELECT GROUP_CONCAT(CONCAT_WS('|', r.response, r.created_at, COALESCE(u2.username, 'System'))
+                         ORDER BY r.created_at DESC SEPARATOR '---')
+                         FROM responses r 
+                         LEFT JOIN users u2 ON r.admin_id = u2.id
+                         WHERE r.ticket_id = t.id)
+                END as notes
+            FROM (
+                SELECT id, title, name, email, category, description, status, 
+                       created_at, updated_at, admin_id, NULL as closed_date
+                FROM tickets WHERE id = ?
+                UNION ALL
+                SELECT id, title, name, email, category, description, status,
+                       created_at, updated_at, admin_id, closed_date
+                FROM closed_tickets WHERE id = ?
+            ) t
+            LEFT JOIN users u ON u.id = t.admin_id
         ");
-        $stmt->execute([$ticketId]);
+        $stmt->execute([$ticketId, $ticketId]);
         $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // If not found, try closed tickets
-        if (!$ticket) {
-            $stmt = $this->db->prepare("
-                SELECT 
-                    id as ticket_id,
-                    title,
-                    name,
-                    email,
-                    category,
-                    description,
-                    status,
-                    created_at,
-                    updated_at,
-                    closed_date
-                FROM closed_tickets 
-                WHERE id = ?
-            ");
-            $stmt->execute([$ticketId]);
-            $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
-        }
-
         if ($ticket) {
-            // Get responses based on ticket status
-            $responses = ($ticket['status'] === 'closed') 
-                ? $this->getClosedTicketResponses($ticketId)
-                : $this->getActiveTicketResponses($ticketId);
-            
-            $ticket['responses'] = $responses;
+            // Parse notes into responses array
+            $notes = explode('---', $ticket['notes'] ?? '');
+            $ticket['responses'] = array_map(function($note) {
+                $parts = explode('|', $note);
+                return [
+                    'content' => $parts[0] ?? '',
+                    'created_at' => $parts[1] ?? $ticket['updated_at'],
+                    'admin_username' => $parts[2] ?? 'System'
+                ];
+            }, array_filter($notes));
         }
 
         return $ticket;
-    }
-
-    private function getActiveTicketResponses($ticketId) {
-        $stmt = $this->db->prepare("
-            SELECT 
-                r.response as content,
-                r.created_at,
-                u.username as admin_username
-            FROM responses r
-            JOIN users u ON r.admin_id = u.id
-            WHERE r.ticket_id = ?
-            ORDER BY r.created_at ASC
-        ");
-        $stmt->execute([$ticketId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    private function getClosedTicketResponses($ticketId) {
-        $stmt = $this->db->prepare("
-            SELECT 
-                r.response as content,
-                r.created_at,
-                u.username as admin_username
-            FROM closed_responses r
-            JOIN users u ON r.admin_id = u.id
-            WHERE r.ticket_id = ?
-            ORDER BY r.created_at ASC
-        ");
-        $stmt->execute([$ticketId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function sendNewTicketNotification($userEmail, $ticketData) {
