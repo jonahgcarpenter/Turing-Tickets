@@ -1,5 +1,5 @@
 <?php
-require_once('../config/database.php');
+require_once('../database/database.php');
 session_start();
 
 // Redirect if already logged in

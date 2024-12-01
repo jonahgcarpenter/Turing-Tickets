@@ -10,7 +10,7 @@ require_once './Project/config/connect.php';
 
 try {
     // Read the SQL file
-    $sql = file_get_contents('./Project/config/database.sql');
+    $sql = file_get_contents('./Project/database/database.sql');
     
     if ($sql === false) {
         error_log('Failed to read database.sql file');
