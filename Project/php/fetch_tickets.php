@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-require_once('../config/database.php');
+require_once('../database/database.php');
 session_start();
 
 // Enhanced session check with redirect information

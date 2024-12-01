@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once('../config/database.php');
+require_once('../database/database.php');
 require_once('emails.php');  // Changed from phpmailer.php to emails.php
 
 header('Content-Type: application/json');
