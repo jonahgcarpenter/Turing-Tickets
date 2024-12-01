@@ -1,4 +1,12 @@
 <?php
+/**
+ * Email Notification System
+ * Handles all email communications for the ticketing system
+ * Features: HTML templates, email threading, notifications for ticket events
+ * Uses PHPMailer for reliable email delivery
+ * Jonah Carpenter - Turing Tickets
+ */
+// Import PHPMailer classes
 require_once __DIR__ . '/../src/Exception.php';
 require_once __DIR__ . '/../src/PHPMailer.php';
 require_once __DIR__ . '/../src/SMTP.php';
@@ -7,6 +15,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 class MailHandler {
+    // Initialize PHPMailer with SMTP configuration
     private $mailer;
     private $config;
     private $db;
@@ -36,6 +45,7 @@ class MailHandler {
         };
     }
 
+    // Helper method to reset mailer state between sends
     private function resetMailer() {
         $this->mailer->clearAddresses();
         $this->mailer->clearAllRecipients();
@@ -46,6 +56,7 @@ class MailHandler {
         $this->mailer->AltBody = '';
     }
 
+    // Generate unique message IDs for email threading
     private function generateMessageId($ticketId) {
         $timestamp = time();
         $random = substr(md5(rand()), 0, 8);
@@ -53,6 +64,7 @@ class MailHandler {
         return "<ticket-$ticketId-$timestamp-$random@$domain>";
     }
 
+    // Set email headers for proper threading and ticket tracking
     private function getThreadHeaders($ticketId) {
         // Get the base thread ID which will be consistent for all messages in the thread
         $domain = parse_url($this->config['smtp_host'], PHP_URL_HOST);
@@ -69,6 +81,7 @@ class MailHandler {
         $this->mailer->addCustomHeader('X-Ticket-ID', $ticketId);
     }
 
+    // Generate consistent HTML email template
     private function getEmailTemplate($content) {
         return "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto'>"
              . "<div style='background:#003366;padding:15px;text-align:center'>"
@@ -80,6 +93,7 @@ class MailHandler {
              . "</div></div>";
     }
 
+    // Core email sending functionality with error handling
     private function sendEmail() {
         try {
             if (!$this->mailer->send()) {
@@ -97,6 +111,7 @@ class MailHandler {
         }
     }
 
+    // Format ticket response history for emails
     private function formatNotes($notes) {
         if (empty($notes) || !is_array($notes)) {
             return "<div style='padding:8px;'>No response history available</div>";
@@ -114,6 +129,7 @@ class MailHandler {
         return $notesHtml;
     }
 
+    // Fetch complete ticket data from database
     private function generateTicketContent($ticketData, $title, $additionalContent = '') {
         $ticketId = $ticketData['ticket_id'];
         $standardContent = "
@@ -157,6 +173,13 @@ class MailHandler {
         return $standardContent;
     }
 
+    // Various notification methods for different ticket events:
+    // - New ticket confirmation
+    // - Status changes
+    // - New responses
+    // - Ticket closure
+    // - Ticket reopening
+    // - Admin welcome emails
     private function getTicketData($ticketId) {
         $stmt = $this->db->prepare("
             SELECT 

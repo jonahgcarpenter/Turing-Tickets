@@ -1,4 +1,12 @@
 <?php
+/**
+ * Admin Dashboard Authentication Check
+ * Verifies admin session status for dashboard access
+ * Security measures: Session validation, JSON response handling
+ * Jonah Carpenter - Turing Tickets
+ */
+
+// Prevent output buffering issues and configure error handling
 ob_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 0);

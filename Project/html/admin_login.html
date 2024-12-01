@@ -1,4 +1,16 @@
 <!DOCTYPE html>
+<!-- * Jonah Carpenter - Turing Tickets -->
+<!-- 
+    Admin Login Page
+    Purpose: Provides authentication interface for administrators
+    Features:
+    - Username and password authentication
+    - Reset password option
+    - Back navigation to main page
+    - Form submission to login.php
+-->
+
+<!-- Standard HTML5 head section with meta tags and stylesheet -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,13 +20,16 @@
 </head>
 <body>
 
+<!-- Main container for login form -->
 <div class="container">
+    <!-- Navigation header with back button and title -->
     <div style="display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 20px;">
         <!-- Back Button -->
         <button onclick="window.location.href='../../index.html'" style="position: absolute; left: 0; width: 15%;">&#8592;</button>
         <h1 style="margin: 0;">Admin Login</h1>
     </div>   
     
+    <!-- Authentication form that submits to login.php -->
     <form action="../auth/login.php" method="POST">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
@@ -30,6 +45,7 @@
     </form>
 </div>
 
+<!-- Standard footer with copyright -->
 <footer>
     © 2024 Turing Tickets. All rights reserved.
 </footer>

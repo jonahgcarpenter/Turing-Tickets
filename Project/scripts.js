@@ -1,3 +1,12 @@
+/**
+ * Turing Tickets Client-Side Logic
+ * Handles all frontend interactions and dynamic content updates
+ * Features: Form handling, AJAX requests, dynamic table updates
+ * Uses modern JavaScript with async/await for clean code structure
+ * Jonah Carpenter - Turing Tickets
+ */
+
+/* Category Dropdown Handler - Manages dropdown interaction and keyboard navigation */
 // Handle Category Dropdown Keydown Events
 const categoryDropdown = document.getElementById("category");
 if (categoryDropdown) {
@@ -31,6 +40,7 @@ if (categoryDropdown) {
     });
 }
 
+/* Ticket Submission Handler - Processes new ticket submissions */
 // Handle Ticket Submission
 const submitButton = document.getElementById("submitTicketButton");
 if (submitButton) {

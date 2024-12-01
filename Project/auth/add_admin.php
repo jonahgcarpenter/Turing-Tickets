@@ -1,4 +1,12 @@
 <?php
+/**
+ * Admin Creation Handler
+ * Creates new administrator accounts with proper authorization
+ * Security measures: Password hashing, session verification, email notification
+ * Jonah Carpenter - Turing Tickets
+ */
+
+// Initial setup and authorization check
 require_once('../database/database.php');
 require_once('../php/emails.php');
 session_start();
@@ -14,7 +22,9 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit();
 }
 
+// Form data processing
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Input validation
     $username = $_POST['username'] ?? null;
     $password = $_POST['password'] ?? null;
     $email = $_POST['email'] ?? null;
@@ -26,9 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
+        // New admin account creation
         $pdo = Database::dbConnect();
         
-        // Hash the password before storing it
+        // Security: Hash password before storage to protect user credentials
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         // Insert the new admin into the database
@@ -41,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $newAdminId = $pdo->lastInsertId();
 
-        // Update mailer initialization with database connection
+        // Welcome email handling
         $mailHandler = new MailHandler($pdo);
         $emailSent = $mailHandler->sendAdminWelcomeEmail($email, $username, $password);
 
@@ -50,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("Failed to send welcome email to new admin: $email");
         }
 
+        // Response formatting
         echo json_encode([
             'success' => true, 
             'admin' => [

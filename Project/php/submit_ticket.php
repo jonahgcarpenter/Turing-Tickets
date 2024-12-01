@@ -1,4 +1,12 @@
 <?php
+/**
+ * Ticket Submission Handler
+ * Creates new support tickets and sends confirmation emails
+ * Validates required fields and manages database insertion
+ * No authentication required - public endpoint
+ * Jonah Carpenter - Turing Tickets
+ */
+// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -7,7 +15,9 @@ require_once('emails.php');  // Changed from phpmailer.php to emails.php
 
 header('Content-Type: application/json');
 
+// Handle POST requests for new ticket submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Extract and validate required fields from POST data
     $title = $_POST['title'] ?? null;
     $name = $_POST['name'] ?? null;
     $email = $_POST['email'] ?? null;
@@ -23,12 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $response = ['success' => false, 'message' => '', 'ticketId' => null];
 
     try {
+        // Begin transaction for atomic ticket creation
         $pdo = Database::dbConnect();
         $pdo->beginTransaction();
 
-        // Update mailer initialization with database connection
+        // Initialize email handler for notifications
         $mailHandler = new MailHandler($pdo);
 
+        // Insert new ticket into database
         $stmt = $pdo->prepare('INSERT INTO tickets (title, name, email, category, description, status) VALUES (:title, :name, :email, :category, :description, "open")');
         $stmt->execute([
             ':title' => $title,
@@ -40,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $ticketId = $pdo->lastInsertId();
         
-        // Send email notification before committing transaction
+        // Send confirmation email to user
         $ticketDetails = [
             'id' => $ticketId,
             'subject' => $title,
@@ -50,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $emailSent = $mailHandler->sendNewTicketNotification($email, $ticketDetails);
         
-        // Commit transaction after email attempt
+        // Commit transaction and prepare success response
         $pdo->commit();
 
         $response['success'] = true;
@@ -61,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
     } catch (Exception $e) {
+        // Handle errors and rollback if needed
         if (isset($pdo) && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
@@ -68,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $response['message'] = "Error: " . $e->getMessage();
     }
 
+    // Return JSON response and close database connection
     echo json_encode($response);
     Database::dbDisconnect();
 }

@@ -1,4 +1,23 @@
 <!DOCTYPE html>
+<!-- * Jonah Carpenter - Turing Tickets -->
+<!--
+    Admin Dashboard Page
+    Purpose: Main interface for ticket management and administrative tasks
+    Features:
+    - Real-time ticket monitoring
+    - Sorting and filtering capabilities
+    - Expandable ticket details
+    - User session management
+    - Access to admin management
+    
+    Table Structure:
+    - Ticket number
+    - User information
+    - Creation/Update timestamps
+    - Request details
+    - Status tracking
+    - Notes history
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -72,7 +91,7 @@
                     <td>Loading</td><td>...</td> <!-- Main ticket row -->
                 </tr>
                 <tr class="expandable-row"> <!-- Expandable content row, initially hidden -->
-                    <td colspan="7"> <!-- Update colspan from 6 to 7 to match new column count -->
+                    <td colspan="7">
                         <div class="expanded-content">
                             <div class="ticket-metadata">
                                 <div class="metadata-item">

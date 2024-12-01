@@ -1,4 +1,13 @@
 <?php
+/**
+ * Turing Tickets Database Setup Script
+ * Initializes the database schema and required tables
+ * Features: Error handling, SQL execution, setup verification
+ * Uses PDO for secure database operations
+ * Jonah Carpenter - Turing Tickets
+ */
+
+/* Error Configuration - Enable detailed error reporting for setup */
 // Enable error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -48,4 +57,6 @@ try {
     error_log('Setup Error: ' . $e->getMessage());
     die("\nSetup failed: " . $e->getMessage() . "\n");
 }
+
+/* Rest of existing code... */
 ?>

@@ -1,4 +1,20 @@
 <!DOCTYPE html>
+<!-- * Jonah Carpenter - Turing Tickets -->
+<!--
+    Admin Management Page
+    Purpose: Manages administrator accounts and permissions
+    Features:
+    - New admin account creation
+    - Admin list viewing
+    - Admin removal capability
+    - Email validation
+    - Secure password handling
+    
+    Components:
+    - Add admin form
+    - Admin list table
+    - Delete functionality with confirmation
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,7 +31,7 @@
         <button onclick="window.location.href='admin_dashboard.html'" style="position: absolute; left: 0; width: 15%;">&#8592;</button>
         <h1 style="margin: 0;">New Admin</h1>
     </div>     
-    
+   
     <form id="addAdminForm" action="../auth/add_admin.php" method="POST">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>

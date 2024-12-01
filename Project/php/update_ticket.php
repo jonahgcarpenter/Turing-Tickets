@@ -1,4 +1,11 @@
 <?php
+/**
+ * Ticket Update Handler
+ * Manages ticket status changes, responses, and transfers between active/closed states
+ * Includes email notifications for all ticket changes
+ * Security measures: Admin session verification
+ * Jonah Carpenter - Turing Tickets
+ */
 require_once('../database/database.php');
 require_once('emails.php');
 session_start();
@@ -39,9 +46,10 @@ try {
         throw new Exception('Invalid admin session');
     }
 
+    // Parse incoming JSON data for ticket updates
     $data = json_decode(file_get_contents('php://input'), true);
 
-    // Determine operation type based on input
+    // Determine what type of update is being performed (status and/or response)
     $isStatusUpdate = isset($data['status']) && !empty($data['status']);
     $isResponseUpdate = isset($data['response']) && !empty($data['response']);
 
@@ -58,7 +66,7 @@ try {
     try {
         $pdo->beginTransaction();
         
-        // Get ticket email before any changes
+        // Get ticket's email address before making any changes for notifications
         $stmt = $pdo->prepare("
             SELECT email FROM (
                 SELECT email FROM tickets WHERE id = ?
@@ -69,7 +77,7 @@ try {
         $stmt->execute([$ticket_id, $ticket_id]);
         $userEmail = $stmt->fetchColumn();
 
-        // Simple location check
+        // Determine if ticket is in active or closed table
         $stmt = $pdo->prepare("SELECT 'active' as location FROM tickets WHERE id = ? UNION SELECT 'closed' FROM closed_tickets WHERE id = ?");
         $stmt->execute([$ticket_id, $ticket_id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -83,7 +91,9 @@ try {
         error_log("Status update: " . ($isStatusUpdate ? $data['status'] : 'none'));
         error_log("Response update: " . ($isResponseUpdate ? 'yes' : 'no'));
 
-        // STEP 1: Handle any new responses first
+        // STEP 1: Handle adding new responses
+        // - Adds response to appropriate table based on ticket status
+        // - Sends email notification about new response
         if ($isResponseUpdate) {
             if ($currentLocation === 'active') {
                 // Add response to active ticket
@@ -122,6 +132,9 @@ try {
         }
 
         // STEP 2: Handle status changes and reopening
+        // - Moves ticket between active/closed tables if needed
+        // - Updates status within current table
+        // - Sends appropriate notifications
         if ($currentLocation === 'closed') {
             // Determine the appropriate status for reopening
             $reopenStatus = 'in-progress';  // Default when only adding response
@@ -213,7 +226,7 @@ try {
             }
         }
 
-        // Set final message if both operations occurred
+        // Set final success message based on operations performed
         if ($isStatusUpdate && $isResponseUpdate) {
             $response['message'] = 'Ticket #' . $ticket_id . ' - Status updated to ' . $data['status'] . ' and response added';
         } else if ($isResponseUpdate && !$isStatusUpdate) {
@@ -225,6 +238,7 @@ try {
         $response['emailSent'] = true;
 
     } catch (Exception $e) {
+        // Handle database operation errors
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
@@ -239,9 +253,11 @@ try {
         ];
     }
 
+    // Return JSON response with operation results
     echo json_encode($response);
 
 } catch (PDOException $e) {
+    // Handle database connection errors
     $response['success'] = false;
     $response['message'] = 'Database connection failed';
     $response['error'] = $e->getMessage();

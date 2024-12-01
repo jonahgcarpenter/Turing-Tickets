@@ -1,8 +1,16 @@
 <?php
+/**
+ * Admin Deletion Handler
+ * Allows removal of admin accounts with proper authorization
+ * Security measures: Session verification, role verification
+ * Jonah Carpenter - Turing Tickets
+ */
+
 require_once('../database/database.php');
 session_start();
 header('Content-Type: application/json');
 
+// Security: Verify admin session before allowing any operations
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     echo json_encode([
         'error' => 'Unauthorized access',

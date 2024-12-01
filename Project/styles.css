@@ -1,4 +1,12 @@
-/* Color Variables */
+/**
+ * Turing Tickets CSS Styling
+ * Controls the visual presentation and layout of the ticketing system
+ * Features: Responsive design, modern UI elements, accessibility considerations
+ * Uses CSS variables for consistent theming and easy maintenance
+ * Jonah Carpenter - Turing Tickets
+ */
+
+/* Color Variables - Core theme colors and design tokens */
 :root {
   --powder-blue: #4f9de1; /* Ole Miss powder blue */
   --powder-blue-dark: #3b7ab3;
@@ -22,7 +30,7 @@
   --gradient-primary: linear-gradient(135deg, var(--powder-blue) 0%, #6366f1 100%);
 }
 
-/* General Styles */
+/* General Styles - Base styling for the entire application */
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: var(--text-color);
@@ -43,6 +51,7 @@ body {
   background-repeat: repeat;
 }
 
+/* Container Styles - Main content wrapper styling */
 .container {
   max-width: 450px;
   margin: 15px auto;

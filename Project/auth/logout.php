@@ -1,4 +1,11 @@
 <?php
+/**
+ * Logout Handler
+ * Destroys session data and redirects to login page
+ * Security measure: Complete session destruction
+ * Jonah Carpenter - Turing Tickets
+ */
+
 session_start();
 // Destroy all session data
 session_unset();

@@ -1,4 +1,13 @@
 <?php
+/*
+ * This schema creates a ticket management system with the following features:
+ * - User authentication and authorization
+ * - Ticket creation and management
+ * - Response tracking
+ * - Automated archiving system for closed tickets
+ * Jonah Carpenter - Turing Tickets
+ */
+
 class Database {
     private static $pdo = null;
 
