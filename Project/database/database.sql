@@ -39,8 +39,9 @@ CREATE TABLE users (
 -- Insert default admin user (root/root)
 -- Username: root
 -- Password: root (but hashed)
+-- Email: Update for your needs
 INSERT INTO users (username, password, email, role) 
-VALUES ('root', '$2y$10$uo7ILP4FLQYc1TAKyf31WORKKVH99rAzBBeGCcJuq0Ykt93uQlHE6', 'turingtickets@gmail.com', 'admin');
+VALUES ('root', '$2y$10$uo7ILP4FLQYc1TAKyf31WORKKVH99rAzBBeGCcJuq0Ykt93uQlHE6', 'yourgmailaddress@gmail.com', 'admin');
 
 /*
  * Tickets Table
